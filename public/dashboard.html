@@ -58,9 +58,9 @@
   .table .tr .name { font-weight: 600; }
   .table .tr .amt { font-family: var(--f-mono); font-weight: 600; }
   .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
-  .badge-paid { background: rgba(47,158,110,.1); color: var(--ok); }
-  .badge-due { background: rgba(217,164,65,.12); color: var(--gold-500); }
-  .badge-egreso { background: rgba(201,82,63,.08); color: var(--bad); }
+  .badge-pagado { background: rgba(47,158,110,.1); color: var(--ok); }
+  .badge-pendiente { background: rgba(217,164,65,.12); color: var(--gold-500); }
+  .badge-gasto { background: rgba(201,82,63,.08); color: var(--bad); }
   .delete-btn { color: var(--ink-400); cursor: pointer; padding: 4px; border-radius: 4px; font-size: 14px; }
   .delete-btn:hover { color: var(--bad); background: rgba(201,82,63,.08); }
 
@@ -198,7 +198,7 @@
         <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <select class="sede-select" id="sede-select"></select>
           <button class="btn-sm btn-ghost" id="btn-export">Exportar CSV</button>
-          <button class="btn-sm btn-primary" id="btn-add">+ Registrar movimiento</button>
+          <button class="btn-sm btn-primary" id="btn-add">+ Nuevo movimiento</button>
         </div>
       </div>
 
@@ -231,15 +231,16 @@
                 <div style="font-size:12px;opacity:0.85;margin-top:4px"><span id="cash-count">0</span> movimientos</div>
               </div>
               <div style="text-align:right;font-size:11px;opacity:0.85;line-height:1.5">
-                <div>Ingresos: S/ <span id="cash-in">0</span></div>
-                <div>Egresos: S/ <span id="cash-out">0</span></div>
+                <div>Pagado: S/ <span id="cash-in">0</span></div>
+                <div>Pendiente: S/ <span id="cash-pending">0</span></div>
+                <div>Gastos: S/ <span id="cash-out">0</span></div>
               </div>
             </div>
           </div>
 
           <div class="card">
             <div style="font-size:13px;font-weight:600">Por metodo de pago</div>
-            <div style="font-size:11px;color:var(--ink-500);margin-top:2px;margin-bottom:14px">Distribucion de ingresos</div>
+            <div style="font-size:11px;color:var(--ink-500);margin-top:2px;margin-bottom:14px">Distribucion de cobros</div>
             <div class="method-bar" id="method-bar"></div>
             <div id="method-list" style="display:flex;flex-direction:column;gap:10px"></div>
           </div>
@@ -294,8 +295,9 @@
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="field"><label>Tipo</label><select id="m-tipo">
-          <option value="ingreso">Ingreso</option>
-          <option value="egreso">Egreso</option>
+          <option value="pagado">Pagado</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="gasto">Gasto</option>
         </select></div>
         <div class="field"><label>Sede</label><select id="m-local"></select></div>
       </div>
@@ -488,19 +490,21 @@ async function loadCajaData() {
 }
 
 function renderCaja() {
-  const ingresos = movimientos.filter(m => m.tipo === 'ingreso');
-  const egresos = movimientos.filter(m => m.tipo === 'egreso');
-  const totalIn = ingresos.reduce((s, m) => s + Number(m.monto), 0);
-  const totalOut = egresos.reduce((s, m) => s + Number(m.monto), 0);
-  const neto = totalIn - totalOut;
+  const pagados = movimientos.filter(m => m.tipo === 'pagado');
+  const pendientes = movimientos.filter(m => m.tipo === 'pendiente');
+  const gastos = movimientos.filter(m => m.tipo === 'gasto');
+  const totalPagado = pagados.reduce((s, m) => s + Number(m.monto), 0);
+  const totalPendiente = pendientes.reduce((s, m) => s + Number(m.monto), 0);
+  const totalGasto = gastos.reduce((s, m) => s + Number(m.monto), 0);
+  const neto = totalPagado - totalGasto;
   const count = movimientos.length;
 
   // KPIs
   document.getElementById('kpi-row').innerHTML = `
-    <div class="card kpi"><div class="lbl">Ingresos hoy</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalIn.toFixed(2)}</div><div class="sub">${ingresos.length} transacciones</div></div>
-    <div class="card kpi"><div class="lbl">Egresos hoy</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalOut.toFixed(2)}</div><div class="sub">${egresos.length} salidas</div></div>
-    <div class="card kpi"><div class="lbl">Neto</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${neto.toFixed(2)}</div><div class="sub">ingresos - egresos</div></div>
-    <div class="card kpi"><div class="lbl">Movimientos</div><div class="val">${count}</div><div class="sub">${localName(selectedLocalId)}</div></div>
+    <div class="card kpi"><div class="lbl">Pagado hoy</div><div class="val" style="color:var(--ok)"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalPagado.toFixed(2)}</div><div class="sub">${pagados.length} cobros</div></div>
+    <div class="card kpi"><div class="lbl">Pendiente</div><div class="val" style="color:var(--gold-500)"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalPendiente.toFixed(2)}</div><div class="sub">${pendientes.length} por cobrar</div></div>
+    <div class="card kpi"><div class="lbl">Gastos</div><div class="val" style="color:var(--bad)"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalGasto.toFixed(2)}</div><div class="sub">${gastos.length} salidas</div></div>
+    <div class="card kpi"><div class="lbl">Neto en caja</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${neto.toFixed(2)}</div><div class="sub">pagado - gastos</div></div>
   `;
 
   // Movements sub
@@ -510,23 +514,27 @@ function renderCaja() {
   // Movements table
   const list = document.getElementById('movements');
   if (count === 0) {
-    list.innerHTML = `<div class="empty">No hay movimientos hoy. Click en "Registrar movimiento" para empezar.</div>`;
+    list.innerHTML = `<div class="empty">No hay movimientos hoy. Click en "Nuevo movimiento" para empezar.</div>`;
   } else {
     list.innerHTML = movimientos.map(m => {
       const hora = new Date(m.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
-      const badge = m.tipo === 'ingreso'
-        ? '<span class="badge badge-paid">Ingreso</span>'
-        : '<span class="badge badge-egreso">Egreso</span>';
-      const sign = m.tipo === 'egreso' ? '-' : '';
+      const BADGES = {
+        pagado: '<span class="badge badge-pagado">Pagado</span>',
+        pendiente: '<span class="badge badge-pendiente">Pendiente</span>',
+        gasto: '<span class="badge badge-gasto">Gasto</span>',
+      };
+      const badge = BADGES[m.tipo] || '';
+      const sign = m.tipo === 'gasto' ? '-' : '';
+      const amtColor = m.tipo === 'gasto' ? 'color:var(--bad)' : m.tipo === 'pendiente' ? 'color:var(--gold-500)' : 'color:var(--ok)';
       const metodo = m.metodo_pago || '—';
 
       return `<div class="tr">
         <div class="h">${hora}</div>
         <div class="name">${escapeHTML(m.concepto)}</div>
-        <div class="svc" style="color:var(--ink-600)">${m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}</div>
+        <div class="svc" style="color:var(--ink-600)">${escapeHTML(m.tipo)}</div>
         <div class="therapist" style="font-size:11px;color:var(--ink-600)">${escapeHTML(localName(m.local_id))}</div>
         <div class="method" style="color:var(--ink-700);font-size:11px">${escapeHTML(metodo)}</div>
-        <div class="amt">${sign}S/ ${Number(m.monto).toFixed(2)}</div>
+        <div class="amt" style="${amtColor}">${sign}S/ ${Number(m.monto).toFixed(2)}</div>
         <div class="status">${badge}</div>
         <div class="delete delete-btn" data-id="${m.id}" title="Eliminar">&times;</div>
       </div>`;
@@ -547,12 +555,13 @@ function renderCaja() {
   // Cash card
   document.getElementById('cash-total').textContent = neto.toFixed(2);
   document.getElementById('cash-count').textContent = count;
-  document.getElementById('cash-in').textContent = totalIn.toFixed(2);
-  document.getElementById('cash-out').textContent = totalOut.toFixed(2);
+  document.getElementById('cash-in').textContent = totalPagado.toFixed(2);
+  document.getElementById('cash-pending').textContent = totalPendiente.toFixed(2);
+  document.getElementById('cash-out').textContent = totalGasto.toFixed(2);
 
-  // Method breakdown (ingresos only)
+  // Method breakdown (pagados only)
   const methods = {};
-  ingresos.forEach(m => {
+  pagados.forEach(m => {
     const key = m.metodo_pago || 'otro';
     methods[key] = (methods[key] || 0) + Number(m.monto);
   });
@@ -562,7 +571,7 @@ function renderCaja() {
   if (totalMethods === 0) {
     bar.innerHTML = '';
     document.getElementById('method-list').innerHTML =
-      '<div style="font-size:12px;color:var(--ink-500);text-align:center;padding:8px">Sin ingresos</div>';
+      '<div style="font-size:12px;color:var(--ink-500);text-align:center;padding:8px">Sin cobros</div>';
   } else {
     bar.innerHTML = Object.entries(methods).map(([k, v]) =>
       `<div style="flex:${v};background:${METHOD_COLORS[k] || 'var(--ink-300)'}"></div>`).join('');
@@ -587,7 +596,7 @@ function setupModal() {
   document.getElementById('btn-add').addEventListener('click', () => {
     document.getElementById('m-concepto').value = '';
     document.getElementById('m-monto').value = '';
-    document.getElementById('m-tipo').value = 'ingreso';
+    document.getElementById('m-tipo').value = 'pagado';
     document.getElementById('m-metodo').value = 'efectivo';
     if (selectedLocalId) document.getElementById('m-local').value = selectedLocalId;
     modal.classList.add('show');
@@ -730,7 +739,7 @@ document.getElementById('citas-filter-local').addEventListener('change', loadCit
 function setupExport() {
   document.getElementById('btn-export').addEventListener('click', () => {
     if (movimientos.length === 0) { showToast('No hay movimientos para exportar', 'error'); return; }
-    const rows = [['Fecha', 'Hora', 'Tipo', 'Concepto', 'Metodo', 'Monto', 'Sede']];
+    const rows = [['Fecha', 'Hora', 'Estado', 'Concepto', 'Metodo', 'Monto', 'Sede']];
     movimientos.forEach(m => {
       const hora = new Date(m.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
       rows.push([m.fecha, hora, m.tipo, m.concepto, m.metodo_pago || '', m.monto, localName(m.local_id)]);
