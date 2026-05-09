@@ -251,9 +251,15 @@
   // CARGAR DATOS DESDE SUPABASE
   // ==========================================
   async function loadSupabaseData() {
+    // Esperar a que el módulo supabase-client.js termine de cargar
+    let retries = 0;
+    while (!window.supabaseClient && retries < 30) {
+      await new Promise(r => setTimeout(r, 100));
+      retries++;
+    }
     const sb = window.supabaseClient;
     if (!sb) {
-      console.warn('Supabase no disponible, usando datos fallback.');
+      console.warn('Supabase no disponible después de esperar, usando datos fallback.');
       return;
     }
 
