@@ -351,6 +351,16 @@
   // ==========================================
   // RENDER: Días y horarios
   // ==========================================
+  // Formatea fecha LOCAL (evita bug de timezone con toISOString que usa UTC)
+  function localISO(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  // Parsea "YYYY-MM-DD" como fecha LOCAL (no UTC)
+  function parseLocalDate(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
   const SLOTS = ['9:00 am','10:00 am','11:00 am','3:00 pm','4:00 pm','5:00 pm','6:00 pm','7:00 pm'];
@@ -369,9 +379,9 @@
       d.setDate(today.getDate() + i);
       arr.push(d);
     }
-    if (!state.date) state.date = arr[1].toISOString().slice(0, 10);
+    if (!state.date) state.date = localISO(arr[1]);
     daysEl.innerHTML = arr.map(d => {
-      const iso = d.toISOString().slice(0, 10);
+      const iso = localISO(d);
       const sel = state.date === iso ? 'sel' : '';
       return `<div class="pill ${sel}" data-iso="${iso}">
         <div class="d">${dayNames[d.getDay()]}</div>
@@ -387,13 +397,13 @@
         renderSlots();
       });
     });
-    const dt = new Date(state.date);
+    const dt = parseLocalDate(state.date);
     document.getElementById('day-label').textContent = `${dayNames[dt.getDay()]} ${dt.getDate()} ${monthNames[dt.getMonth()]}`;
   }
 
   function renderSlots() {
     const slotsEl = document.getElementById('slots');
-    const dt = new Date(state.date);
+    const dt = parseLocalDate(state.date);
     const busy = busyForDay(dt);
     slotsEl.innerHTML = SLOTS.map(s => {
       const cls = busy.has(s) ? 'busy' : (state.slot === s ? 'sel' : '');
@@ -495,7 +505,7 @@
     const email = document.getElementById('f-email').value.trim();
     const reason = document.getElementById('f-reason').value.trim();
     const localName = state.local?.nombre || 'Santa Isabel · Carabayllo';
-    const dt = new Date(state.date);
+    const dt = parseLocalDate(state.date);
     const dateStr = `${dayNames[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
     const lines = [
       `*Solicitud de cita - MOVIFLEX*`,
@@ -546,7 +556,7 @@
   // REVIEW
   // ==========================================
   function renderReview() {
-    const dt = new Date(state.date);
+    const dt = parseLocalDate(state.date);
     const dateStr = `${dayNames[dt.getDay()]} ${dt.getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][dt.getMonth()]}`;
     const name = document.getElementById('f-name').value || '—';
     const localName = state.local?.nombre || 'Santa Isabel · Carabayllo';
