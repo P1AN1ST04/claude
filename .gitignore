@@ -6,6 +6,9 @@ node_modules/
 .env.local
 .env.*.local
 
+# Archivo generado en build (contiene credenciales)
+public/js/env.js
+
 # Windows
 Thumbs.db
 ehthumbs.db

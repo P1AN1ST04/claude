@@ -1,0 +1,9 @@
+{
+  "name": "moviflex",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/inject-env.js",
+    "dev": "node scripts/dev-inject.js"
+  }
+}

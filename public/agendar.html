@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
+<script src="js/env.js"></script>
+<script type="module" src="js/supabase-client.js"></script>
 <style>
   body { background: #FBFAF7; min-height: 100vh; }
   .topbar { display:flex; align-items:center; justify-content:space-between; padding: 16px 24px; border-bottom: 1px solid var(--ink-100); background: rgba(251,250,247,.95); position: sticky; top:0; z-index: 5; }
@@ -98,6 +100,20 @@
   }
 
   .hidden { display: none !important; }
+
+  /* Toast de confirmación */
+  .toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--teal-700); color: #fff; padding: 12px 24px; border-radius: 12px;
+    font-size: 14px; font-weight: 600; z-index: 100; box-shadow: var(--sh-2);
+    opacity: 0; transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #c0392b; }
+
+  /* Selector de local */
+  .local-selector { margin-bottom: 20px; }
+  .local-selector label { font-size: 13px; font-weight: 600; margin-bottom: 8px; display: block; }
 </style>
 </head>
 <body>
@@ -118,6 +134,12 @@
     <div class="step-label">Paso 1 de 4</div>
     <h2 class="step-title">¿Qué tipo de terapia necesitas?</h2>
     <div class="opts" id="services"></div>
+    <div class="local-selector">
+      <label>Sede</label>
+      <select id="local-select" class="field" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--ink-200);font-size:14px;background:#fff;cursor:pointer">
+        <option value="">Cargando sedes...</option>
+      </select>
+    </div>
     <div style="padding:14px;background:var(--teal-50);border-radius:12px;font-size:12px;color:var(--ink-700);line-height:1.5">
       💡 <strong style="color:var(--teal-800)">Tip:</strong> Reserva paquetes de 5 o 10 sesiones y ahorra hasta S/100.
     </div>
@@ -183,28 +205,120 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
 <script src="logo.js"></script>
 <script>
-  const SERVICES = [
+  // ==========================================
+  // DATOS FALLBACK (se usan si Supabase no responde)
+  // ==========================================
+  const FALLBACK_SERVICES = [
     { id: 'fisica', icon: '◐', title: 'Terapia Física', sub: 'General · adultos', priceLabel: 'desde S/ 40', basePrice: 40 },
     { id: 'pediatrica', icon: '✿', title: 'Terapia Pediátrica', sub: 'Niños y adolescentes', priceLabel: 'desde S/ 50', basePrice: 50 },
     { id: 'neurologica', icon: '◇', title: 'Terapia Neurológica', sub: 'Sistema nervioso', priceLabel: 'desde S/ 50', basePrice: 50 },
     { id: 'masoterapia', icon: '❋', title: 'Masoterapia', sub: 'Masajes terapéuticos', priceLabel: 'desde S/ 35', basePrice: 35 },
   ];
+  const FALLBACK_LOCALES = [
+    { id: 'santa-isabel', nombre: 'Santa Isabel · Carabayllo' }
+  ];
+
+  const ICON_MAP = { 'Terapia Física': '◐', 'Terapia Pediátrica': '✿', 'Terapia Neurológica': '◇', 'Masoterapia': '❋', 'Rehabilitación Deportiva': '⚡' };
+
+  // ==========================================
+  // ESTADO
+  // ==========================================
+  let SERVICES = [...FALLBACK_SERVICES];
+  let LOCALES = [...FALLBACK_LOCALES];
 
   const state = {
     step: 1,
     service: null,
+    local: null,
     date: null,
     slot: null,
   };
 
-  // Pre-select from URL ?servicio=
-  const params = new URLSearchParams(location.search);
-  const presel = params.get('servicio');
-  if (presel) state.service = SERVICES.find(s => s.id === presel) || null;
+  // ==========================================
+  // TOAST
+  // ==========================================
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { toast.className = 'toast'; }, 3500);
+  }
 
-  // Render services list
+  // ==========================================
+  // CARGAR DATOS DESDE SUPABASE
+  // ==========================================
+  async function loadSupabaseData() {
+    const sb = window.supabaseClient;
+    if (!sb) {
+      console.warn('Supabase no disponible, usando datos fallback.');
+      return;
+    }
+
+    try {
+      // Cargar servicios
+      const { data: servicios, error: errServ } = await sb
+        .from('servicios')
+        .select('*')
+        .eq('activo', true)
+        .order('nombre');
+
+      if (!errServ && servicios && servicios.length > 0) {
+        SERVICES = servicios.map(s => ({
+          id: s.id,
+          dbId: s.id,
+          icon: ICON_MAP[s.nombre] || '●',
+          title: s.nombre,
+          sub: s.duracion_min ? `${s.duracion_min} min` : '',
+          priceLabel: `desde S/ ${s.precio}`,
+          basePrice: Number(s.precio),
+        }));
+        console.log(`✅ ${servicios.length} servicios cargados de Supabase.`);
+      } else if (errServ) {
+        console.warn('Error al cargar servicios:', errServ.message);
+      }
+
+      // Cargar locales
+      const { data: locales, error: errLoc } = await sb
+        .from('locales')
+        .select('*')
+        .eq('activo', true)
+        .order('nombre');
+
+      if (!errLoc && locales && locales.length > 0) {
+        LOCALES = locales.map(l => ({
+          id: l.id,
+          nombre: l.nombre + (l.direccion ? ' · ' + l.direccion : ''),
+          telefono: l.whatsapp || null,
+        }));
+        console.log(`✅ ${locales.length} locales cargados de Supabase.`);
+      } else if (errLoc) {
+        console.warn('Error al cargar locales:', errLoc.message);
+      }
+    } catch (err) {
+      console.warn('Error conectando con Supabase, usando fallback:', err);
+    }
+  }
+
+  // ==========================================
+  // RENDER: Selector de local
+  // ==========================================
+  function renderLocales() {
+    const sel = document.getElementById('local-select');
+    sel.innerHTML = LOCALES.map((l, i) =>
+      `<option value="${l.id}" ${i === 0 ? 'selected' : ''}>${l.nombre}</option>`
+    ).join('');
+    state.local = LOCALES[0] || null;
+    sel.addEventListener('change', () => {
+      state.local = LOCALES.find(l => String(l.id) === sel.value) || null;
+    });
+  }
+
+  // ==========================================
+  // RENDER: Servicios
+  // ==========================================
   const servicesEl = document.getElementById('services');
   function renderServices() {
     servicesEl.innerHTML = SERVICES.map(s => `
@@ -222,18 +336,19 @@
     `).join('');
     servicesEl.querySelectorAll('.opt').forEach(el => {
       el.addEventListener('click', () => {
-        state.service = SERVICES.find(s => s.id === el.dataset.id);
+        state.service = SERVICES.find(s => String(s.id) === el.dataset.id);
         renderServices();
       });
     });
   }
-  renderServices();
 
-  // Days — next 7 days starting today
+  // ==========================================
+  // RENDER: Días y horarios
+  // ==========================================
   const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
   const SLOTS = ['9:00 am','10:00 am','11:00 am','3:00 pm','4:00 pm','5:00 pm','6:00 pm','7:00 pm'];
-  // Pseudo-random "busy" slots per day (deterministic from date)
+
   function busyForDay(d) {
     const seed = d.getDate() + d.getMonth();
     return new Set([SLOTS[seed % SLOTS.length], SLOTS[(seed * 3 + 1) % SLOTS.length]]);
@@ -295,6 +410,77 @@
     `;
   }
 
+  // ==========================================
+  // CONSTRUIR FECHA ISO PARA SUPABASE
+  // ==========================================
+  function buildFechaHora() {
+    // Convierte "9:00 am" → "09:00" en formato 24h
+    const match = state.slot.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!match) return null;
+    let h = parseInt(match[1]);
+    const m = match[2];
+    const ampm = match[3].toLowerCase();
+    if (ampm === 'pm' && h < 12) h += 12;
+    if (ampm === 'am' && h === 12) h = 0;
+    const hh = String(h).padStart(2, '0');
+    return `${state.date}T${hh}:${m}:00-05:00`; // Lima UTC-5
+  }
+
+  // ==========================================
+  // INSERTAR CITA EN SUPABASE
+  // ==========================================
+  async function insertarCita() {
+    const sb = window.supabaseClient;
+    if (!sb) {
+      console.warn('Supabase no disponible, se omite el registro en BD.');
+      return true; // Permitir continuar a WhatsApp
+    }
+
+    const name = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const email = document.getElementById('f-email').value.trim();
+    const reason = document.getElementById('f-reason').value.trim();
+    const fechaHora = buildFechaHora();
+
+    const citaData = {
+      servicio_id: state.service.dbId || state.service.id,
+      local_id: state.local?.id || null,
+      paciente_nombre: name,
+      paciente_telefono: phone,
+      fecha_hora: fechaHora,
+      estado: 'agendada',
+      origen: 'web',
+    };
+
+    // Campos opcionales
+    if (email) citaData.paciente_email = email;
+    if (reason) citaData.notas = reason;
+
+    try {
+      const { data, error } = await sb
+        .from('citas')
+        .insert(citaData)
+        .select();
+
+      if (error) {
+        console.error('Error al insertar cita:', error);
+        showToast('Error al registrar la cita. Intenta de nuevo.', true);
+        return false;
+      }
+
+      console.log('✅ Cita registrada:', data);
+      showToast('Cita registrada exitosamente');
+      return true;
+    } catch (err) {
+      console.error('Error de conexión:', err);
+      showToast('Error de conexión. Intenta de nuevo.', true);
+      return false;
+    }
+  }
+
+  // ==========================================
+  // WHATSAPP
+  // ==========================================
   function buildWhatsAppLink() {
     const name = document.getElementById('f-name').value.trim();
     const dni = document.getElementById('f-dni').value.trim();
@@ -302,12 +488,14 @@
     const phone = document.getElementById('f-phone').value.trim();
     const email = document.getElementById('f-email').value.trim();
     const reason = document.getElementById('f-reason').value.trim();
+    const localName = state.local?.nombre || 'Santa Isabel · Carabayllo';
     const dt = new Date(state.date);
     const dateStr = `${dayNames[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
     const lines = [
       `*Solicitud de cita - MOVIFLEX*`,
       ``,
       `📋 *Servicio:* ${state.service.title}`,
+      `📍 *Sede:* ${localName}`,
       `📅 *Fecha:* ${dateStr}`,
       `🕐 *Hora:* ${state.slot}`,
       ``,
@@ -320,18 +508,42 @@
       ``,
       `💰 *Total:* S/ ${state.service.basePrice.toFixed(2)}`,
     ].filter(Boolean).join('\n');
-    document.getElementById('btn-wa').href = `https://wa.me/51948258828?text=${encodeURIComponent(lines)}`;
+
+    // Usar teléfono del local si está disponible, sino el default
+    const waPhone = (state.local?.telefono || '51948258828').replace(/\D/g, '');
+    document.getElementById('btn-wa').href = `https://wa.me/${waPhone}?text=${encodeURIComponent(lines)}`;
   }
 
-  // After clicking the WhatsApp link, advance to success step
-  document.getElementById('btn-wa').addEventListener('click', () => {
-    setTimeout(() => showStep(5), 400);
+  // Interceptar click en WhatsApp: insertar en BD primero
+  document.getElementById('btn-wa').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const btnWa = document.getElementById('btn-wa');
+    const originalText = btnWa.innerHTML;
+    btnWa.style.opacity = '0.6';
+    btnWa.style.pointerEvents = 'none';
+
+    const ok = await insertarCita();
+
+    btnWa.style.opacity = '1';
+    btnWa.style.pointerEvents = 'auto';
+
+    if (ok) {
+      // Abrir WhatsApp después de un breve delay para que se vea el toast
+      setTimeout(() => {
+        window.open(btnWa.href, '_blank');
+        showStep(5);
+      }, 800);
+    }
   });
 
+  // ==========================================
+  // REVIEW
+  // ==========================================
   function renderReview() {
     const dt = new Date(state.date);
     const dateStr = `${dayNames[dt.getDay()]} ${dt.getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][dt.getMonth()]}`;
     const name = document.getElementById('f-name').value || '—';
+    const localName = state.local?.nombre || 'Santa Isabel · Carabayllo';
     document.getElementById('review').innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px dashed var(--ink-200)">
         <div class="opt-ic">${state.service.icon}</div>
@@ -344,7 +556,7 @@
         <div class="review-row"><span class="k">Paciente</span><span class="v">${name}</span></div>
         <div class="review-row"><span class="k">Fecha</span><span class="v">${dateStr}</span></div>
         <div class="review-row"><span class="k">Hora</span><span class="v">${state.slot}</span></div>
-        <div class="review-row"><span class="k">Sede</span><span class="v">Santa Isabel · Carabayllo</span></div>
+        <div class="review-row"><span class="k">Sede</span><span class="v">${localName}</span></div>
         <div class="review-row"><span class="k">Pago en sesión</span><span class="v">Efectivo · Yape · Plin</span></div>
       </div>
       <div class="review-total">
@@ -354,26 +566,23 @@
     `;
   }
 
+  // ==========================================
+  // NAVEGACIÓN ENTRE PASOS
+  // ==========================================
   function showStep(n) {
     state.step = n;
     [1,2,3,4,5].forEach(i => {
       document.getElementById('step-' + i).classList.toggle('hidden', i !== n);
     });
-    // progress
     document.querySelectorAll('#progress div').forEach((d, i) => {
       d.classList.toggle('active', i < n);
     });
-    // back button
     document.getElementById('btn-back').classList.toggle('hidden', n === 1 || n === 5);
-    // next button label
     const next = document.getElementById('btn-next');
     if (n === 4) next.innerHTML = 'Confirmar y enviar por WhatsApp →';
-    else if (n === 5) document.getElementById('cta-bar').classList.add('hidden');
     else next.innerHTML = 'Continuar →';
-    // hide footer on success
     document.getElementById('cta-bar').classList.toggle('hidden', n === 5);
 
-    // Toggle next vs WhatsApp button
     const btnNext = document.getElementById('btn-next');
     const btnWa = document.getElementById('btn-wa');
     btnNext.classList.toggle('hidden', n === 4 || n === 5);
@@ -390,6 +599,7 @@
   document.getElementById('btn-next').addEventListener('click', () => {
     if (state.step === 1) {
       if (!state.service) return alert('Por favor elige un servicio.');
+      if (!state.local) return alert('Por favor elige una sede.');
       showStep(2);
     } else if (state.step === 2) {
       if (!state.slot) return alert('Por favor elige un horario.');
@@ -400,10 +610,25 @@
       if (!name || !phone) return alert('Por favor completa nombre y teléfono.');
       showStep(4);
     }
-    // step 4 is handled by the WhatsApp anchor link directly (no JS navigation — no popup blockers)
   });
 
-  showStep(state.service ? 2 : 1);
+  // ==========================================
+  // INICIALIZACIÓN
+  // ==========================================
+  (async function init() {
+    // Cargar datos de Supabase (sin bloquear si falla)
+    await loadSupabaseData();
+
+    // Pre-select desde URL ?servicio=
+    const params = new URLSearchParams(location.search);
+    const presel = params.get('servicio');
+    if (presel) state.service = SERVICES.find(s => s.id === presel || s.title.toLowerCase().includes(presel.toLowerCase())) || null;
+
+    // Renderizar UI
+    renderServices();
+    renderLocales();
+    showStep(state.service ? 2 : 1);
+  })();
 </script>
 
 </body>
