@@ -2,97 +2,139 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<title>MOVIFLEX · Terapia Física y Rehabilitación · Carabayllo</title>
-<meta name="description" content="Centro de terapia física y rehabilitación en Carabayllo. Especialistas en terapia pediátrica, neurológica, masoterapia y rehabilitación post-quirúrgica." />
+<title>MOVIFLEX · Terapia Física y Rehabilitación</title>
+<meta name="description" content="Centro de terapia física y rehabilitación en Lima. Especialistas en terapia pediátrica, neurológica, masoterapia y rehabilitación post-quirúrgica. 3 sedes: Carabayllo, Comas, Santa Isabel." />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta property="og:title" content="MOVIFLEX · Terapia Física y Rehabilitación" />
 <meta property="og:description" content="Recupera tu movimiento. Atención profesional con planes personalizados." />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 <style>
-  /* index-only styles */
+  /* ── NAV ── */
   .nav {
     position: sticky; top: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 56px;
-    background: rgba(251,250,247,.92); backdrop-filter: blur(8px);
+    padding: 14px 56px;
+    background: rgba(251,250,247,.95); backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--ink-100);
   }
   .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-700); font-weight: 500; }
+  .nav-links a { transition: color .15s; }
   .nav-links a:hover { color: var(--teal-700); }
-  .nav-cta { display: flex; gap: 10px; }
-  .menu-toggle { display: none; }
+  .nav-cta { display: flex; gap: 10px; align-items: center; }
+  .nav-phone { font-size: 14px; font-weight: 600; color: var(--teal-700); display: flex; align-items: center; gap: 6px; }
+  .nav-phone svg { width: 16px; height: 16px; }
+  .menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+  .mobile-menu { display: none; }
 
+  /* ── HERO ── */
   .hero {
-    display: grid; grid-template-columns: 1.1fr 1fr; gap: 60px;
-    padding: 64px 56px 80px; align-items: center; position: relative;
+    position: relative; overflow: hidden;
+    padding: 0;
   }
-  .hero h1 {
-    font-family: var(--f-display); font-size: clamp(40px, 6vw, 64px);
-    line-height: 1.05; font-weight: 400; margin: 18px 0 18px;
+  .hero-img-wrap {
+    position: relative; width: 100%; height: 520px;
+    overflow: hidden;
+  }
+  .hero-img-wrap img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, rgba(14,79,74,.85) 0%, rgba(14,79,74,.6) 50%, transparent 100%);
+    display: flex; align-items: center; padding: 0 56px;
+  }
+  .hero-content { max-width: 600px; color: #fff; }
+  .hero-content .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.15); backdrop-filter: blur(6px);
+    padding: 8px 16px; border-radius: var(--r-pill);
+    font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 20px; border: 1px solid rgba(255,255,255,.2);
+  }
+  .hero-content .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #2F9E6E; }
+  .hero-content h1 {
+    font-family: var(--f-display); font-size: clamp(36px, 5.5vw, 58px);
+    line-height: 1.08; font-weight: 400; margin: 0 0 18px;
     letter-spacing: -0.02em;
   }
-  .hero h1 em { font-style: italic; color: var(--teal-700); }
-  .hero p.lead { font-size: 17px; line-height: 1.6; color: var(--ink-600); max-width: 520px; }
-  .hero .actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
-  .trust-row {
-    display: flex; gap: 28px; margin-top: 36px;
-    padding-top: 28px; border-top: 1px solid var(--ink-100);
+  .hero-content h1 em { font-style: italic; color: var(--teal-200); }
+  .hero-content p { font-size: 17px; line-height: 1.6; opacity: 0.9; max-width: 480px; margin: 0 0 28px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-stats {
+    display: flex; gap: 32px; margin-top: 36px;
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,.2);
   }
-  .stat-n { font-family: var(--f-display); font-size: 28px; color: var(--teal-700); line-height: 1; }
-  .stat-l { font-size: 11px; color: var(--ink-600); margin-top: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .hero-photo {
-    position: relative; height: 540px;
-    border-radius: 28px; overflow: hidden;
-    background: linear-gradient(135deg, var(--teal-100), var(--teal-50));
-  }
-  .hero-photo .placeholder {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background-image:
-      repeating-linear-gradient(45deg, rgba(20,30,40,.06) 0 1px, transparent 1px 14px);
-  }
-  .hero-photo .placeholder span {
-    background: rgba(255,255,255,.9); padding: 8px 14px; border-radius: 6px;
-    font-family: var(--f-mono); font-size: 11px; color: var(--ink-600);
-    letter-spacing: 0.1em; text-transform: uppercase;
-  }
-  .hero-card {
-    position: absolute; bottom: -20px; left: -20px;
-    width: 220px; background: #fff; padding: 16px;
-    border-radius: 16px; box-shadow: var(--sh-2);
-  }
-  .hero-pill {
-    position: absolute; top: 24px; right: -12px;
-    background: #fff; padding: 10px 14px; border-radius: var(--r-pill);
-    box-shadow: var(--sh-2);
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; font-weight: 600;
-  }
-  .hero-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .hero-stat-n { font-family: var(--f-display); font-size: 28px; line-height: 1; }
+  .hero-stat-l { font-size: 11px; opacity: 0.7; margin-top: 4px; letter-spacing: .05em; text-transform: uppercase; }
 
-  .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-  .service-card {
-    background: #fff; border-radius: 20px; padding: 28px;
+  /* ── ESPECIALIDADES ── */
+  .spec-header {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    margin-bottom: 48px; align-items: end;
+  }
+  .spec-header h2 {
+    font-family: var(--f-display); font-size: clamp(32px, 4.5vw, 48px);
+    line-height: 1.08; font-weight: 400; margin: 16px 0 0;
+    letter-spacing: -0.02em;
+  }
+  .spec-header h2 em { font-style: italic; color: var(--teal-700); }
+  .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .spec-card {
+    background: #fff; border-radius: 24px; overflow: hidden;
     border: 1px solid var(--ink-100);
-    display: flex; flex-direction: column; gap: 14px;
+    display: grid; grid-template-columns: 200px 1fr;
     transition: transform .2s, box-shadow .2s;
+    min-height: 280px;
   }
-  .service-card:hover { transform: translateY(-4px); box-shadow: var(--sh-2); }
-  .service-icon {
-    width: 48px; height: 48px; border-radius: 12px;
-    background: var(--teal-50); display: flex;
-    align-items: center; justify-content: center;
-    font-size: 22px; color: var(--teal-600);
+  .spec-card:hover { transform: translateY(-4px); box-shadow: var(--sh-2); }
+  .spec-card-img {
+    position: relative; overflow: hidden;
+    background: var(--teal-50);
   }
-  .service-card h3 { font-family: var(--f-display); font-size: 22px; margin: 0; font-weight: 500; letter-spacing: -0.01em; }
-  .service-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-  .service-card li {
-    font-size: 13px; color: var(--ink-700);
-    display: flex; gap: 10px; align-items: flex-start;
+  .spec-card-img img {
+    width: 100%; height: 100%; object-fit: cover;
   }
-  .service-card li::before { content: "◆"; color: var(--teal-600); }
+  .spec-card-img .num {
+    position: absolute; top: 16px; left: 16px;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--teal-700); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .spec-card-body { padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .spec-card-body h3 {
+    font-family: var(--f-display); font-size: 24px; margin: 0;
+    font-weight: 500; letter-spacing: -0.01em;
+  }
+  .spec-card-body p {
+    font-size: 14px; color: var(--ink-600); margin: 0; line-height: 1.55;
+  }
+  .spec-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+  .spec-tag {
+    font-size: 12px; font-weight: 500; color: var(--teal-800);
+    background: var(--teal-50); padding: 6px 12px; border-radius: var(--r-pill);
+    border: 1px solid var(--teal-100);
+  }
+  .spec-link {
+    font-size: 14px; font-weight: 600; color: var(--teal-700);
+    margin-top: 8px; display: inline-flex; align-items: center; gap: 6px;
+    transition: gap .15s;
+  }
+  .spec-link:hover { gap: 10px; }
 
+  /* ── GALERIA ── */
+  .gallery-section { padding: 0; overflow: hidden; }
+  .gallery-strip {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+  }
+  .gallery-strip img {
+    width: 100%; height: 240px; object-fit: cover;
+    transition: transform .3s;
+  }
+  .gallery-strip img:hover { transform: scale(1.05); }
+
+  /* ── PRECIOS ── */
   .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
   .price-card {
     background: #fff; border-radius: 24px; padding: 32px;
@@ -111,11 +153,10 @@
   .price-row:last-of-type { border-bottom: none; }
   .price-num { font-family: var(--f-display); font-size: 28px; font-weight: 500; }
   .price-num small { font-size: 14px; opacity: 0.7; margin-right: 4px; }
-  .price-save {
-    font-size: 11px; color: var(--teal-700); margin-top: 2px;
-  }
+  .price-save { font-size: 11px; color: var(--teal-700); margin-top: 2px; }
   .price-card.featured .price-save { color: var(--teal-200); }
 
+  /* ── PROCESO ── */
   .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; position: relative; }
   .process-grid::before {
     content: ""; position: absolute; top: 24px; left: 6%; right: 6%; height: 1px;
@@ -133,6 +174,24 @@
   .step h4 { font-family: var(--f-display); font-size: 20px; font-weight: 500; margin: 0 0 8px; }
   .step p { font-size: 14px; color: var(--ink-600); line-height: 1.55; margin: 0; }
 
+  /* ── SEDES ── */
+  .sedes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .sede-card {
+    background: #fff; border-radius: 20px; overflow: hidden;
+    border: 1px solid var(--ink-100);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .sede-card:hover { transform: translateY(-4px); box-shadow: var(--sh-2); }
+  .sede-card-img {
+    height: 180px; overflow: hidden;
+    background: var(--teal-50);
+  }
+  .sede-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .sede-card-body { padding: 24px; }
+  .sede-card-body h4 { font-family: var(--f-display); font-size: 20px; font-weight: 500; margin: 0 0 8px; }
+  .sede-card-body p { font-size: 14px; color: var(--ink-600); margin: 0 0 4px; line-height: 1.5; }
+
+  /* ── EQUIPO ── */
   .team-grid { display: flex; flex-direction: column; gap: 14px; }
   .team-row {
     background: #fff; border-radius: 16px; padding: 16px;
@@ -150,6 +209,20 @@
     background: var(--teal-50); padding: 6px 12px; border-radius: var(--r-pill);
   }
 
+  /* ── TESTIMONIOS ── */
+  .testimonios-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .testimonio-card {
+    background: #fff; border-radius: 20px; padding: 28px;
+    border: 1px solid var(--ink-100);
+  }
+  .testimonio-stars { color: var(--gold-500); font-size: 16px; letter-spacing: 2px; margin-bottom: 14px; }
+  .testimonio-text { font-size: 14px; color: var(--ink-700); line-height: 1.6; margin: 0 0 18px; font-style: italic; }
+  .testimonio-author { display: flex; align-items: center; gap: 12px; }
+  .testimonio-author .avatar { width: 40px; height: 40px; font-size: 14px; }
+  .testimonio-author .name { font-size: 14px; font-weight: 600; }
+  .testimonio-author .detail { font-size: 12px; color: var(--ink-500); }
+
+  /* ── CTA ── */
   .cta-section {
     padding: 80px 56px; background: var(--teal-800); color: #fff;
     position: relative; overflow: hidden;
@@ -169,6 +242,7 @@
   }
   .cta-card .info { font-size: 13px; opacity: 0.85; line-height: 1.7; }
 
+  /* ── FOOTER ── */
   footer {
     background: var(--ink-900); color: rgba(255,255,255,.7);
     padding: 48px 56px 28px;
@@ -179,25 +253,52 @@
   footer .col a:hover { color: #fff; }
   .footer-bottom { display: flex; justify-content: space-between; padding-top: 20px; font-size: 12px; }
 
-  /* Mobile */
+  /* ── MOBILE ── */
   @media (max-width: 900px) {
     .nav { padding: 14px 20px; }
     .nav-links { display: none; }
-    .nav-cta .btn { padding: 9px 14px; font-size: 13px; }
-    .hero { grid-template-columns: 1fr; gap: 28px; padding: 32px 20px 56px; }
-    .hero-photo { height: 320px; }
-    .services-grid { grid-template-columns: 1fr 1fr; }
+    .nav-phone { display: none; }
+    .menu-toggle { display: block; }
+    .mobile-menu {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+    }
+    .mobile-menu-panel {
+      position: absolute; right: 0; top: 0; bottom: 0; width: 280px;
+      background: #fff; padding: 24px;
+      display: flex; flex-direction: column; gap: 8px;
+      box-shadow: var(--sh-3);
+    }
+    .mobile-menu-panel a {
+      display: block; padding: 14px 16px; border-radius: 12px;
+      font-size: 15px; font-weight: 500; color: var(--ink-800);
+    }
+    .mobile-menu-panel a:hover { background: var(--teal-50); color: var(--teal-700); }
+    .mobile-menu-close { align-self: flex-end; font-size: 24px; padding: 8px; cursor: pointer; background: none; border: none; color: var(--ink-600); }
+    .hero-overlay { padding: 0 20px; }
+    .hero-img-wrap { height: 440px; }
+    .hero-content h1 { font-size: 32px; }
+    .hero-stats { gap: 20px; flex-wrap: wrap; }
+    .spec-header { grid-template-columns: 1fr; }
+    .spec-grid { grid-template-columns: 1fr; }
+    .spec-card { grid-template-columns: 140px 1fr; min-height: auto; }
+    .gallery-strip { grid-template-columns: repeat(3, 1fr); }
+    .gallery-strip img { height: 180px; }
     .pricing-grid { grid-template-columns: 1fr; }
     .process-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
     .process-grid::before { display: none; }
+    .sedes-grid { grid-template-columns: 1fr; }
+    .testimonios-grid { grid-template-columns: 1fr; }
     .cta-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
     .cta-section { padding: 56px 20px; }
     footer { padding: 40px 20px 20px; }
-    .trust-row { flex-wrap: wrap; gap: 20px; }
   }
   @media (max-width: 480px) {
-    .services-grid { grid-template-columns: 1fr; }
+    .spec-card { grid-template-columns: 1fr; }
+    .spec-card-img { height: 200px; }
+    .gallery-strip { grid-template-columns: repeat(2, 1fr); }
+    .gallery-strip img { height: 150px; }
     .footer-grid { grid-template-columns: 1fr; }
   }
 </style>
@@ -205,89 +306,176 @@
 <body>
 
 <!-- NAV -->
-<nav class="nav">
+<nav class="nav" id="top">
   <div class="logo-mount"></div>
   <div class="nav-links">
     <a href="#servicios">Servicios</a>
-    <a href="#precios">Precios</a>
-    <a href="#proceso">Proceso</a>
+    <a href="#nosotros">Nosotros</a>
+    <a href="#sedes">Sedes</a>
     <a href="#equipo">Equipo</a>
-    <a href="#contacto">Contacto</a>
+    <a href="#testimonios">Testimonios</a>
   </div>
   <div class="nav-cta">
-    <a class="btn btn-ghost" href="tel:+51948258828">+51 948 258 828</a>
-    <a class="btn btn-primary" href="agendar.html">Agendar cita →</a>
+    <a class="nav-phone" href="tel:+51948258828">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2Z"/></svg>
+      +51 948 258 828
+    </a>
+    <a class="btn btn-primary" href="agendar.html">Agendar →</a>
   </div>
+  <button class="menu-toggle" onclick="document.getElementById('mobile-menu').style.display='block'" aria-label="Menú">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobile-menu" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mobile-menu-panel">
+    <button class="mobile-menu-close" onclick="document.getElementById('mobile-menu').style.display='none'">✕</button>
+    <a href="#servicios" onclick="document.getElementById('mobile-menu').style.display='none'">Servicios</a>
+    <a href="#nosotros" onclick="document.getElementById('mobile-menu').style.display='none'">Nosotros</a>
+    <a href="#sedes" onclick="document.getElementById('mobile-menu').style.display='none'">Sedes</a>
+    <a href="#equipo" onclick="document.getElementById('mobile-menu').style.display='none'">Equipo</a>
+    <a href="#testimonios" onclick="document.getElementById('mobile-menu').style.display='none'">Testimonios</a>
+    <a href="#precios" onclick="document.getElementById('mobile-menu').style.display='none'">Precios</a>
+    <div style="height:1px;background:var(--ink-100);margin:8px 0"></div>
+    <a href="tel:+51948258828" style="color:var(--teal-700)">+51 948 258 828</a>
+    <a href="agendar.html" class="btn btn-primary" style="justify-content:center;margin-top:8px">Agendar cita →</a>
+  </div>
+</div>
 
 <!-- HERO -->
 <section class="hero">
-  <div>
-    <span class="eyebrow"><span style="width:6px;height:6px;border-radius:50%;background:var(--teal-600)"></span> Carabayllo · Lima</span>
-    <h1>Recupera tu<br/><em>movimiento</em>,<br/>recupera tu vida.</h1>
-    <p class="lead">Centro de terapia física y rehabilitación con personal altamente capacitado en agentes físicos, terapia manual y ejercicios personalizados. Atendemos lesiones deportivas, rehabilitación post-quirúrgica, dolor crónico y casos pediátricos y neurológicos.</p>
-    <div class="actions">
-      <a class="btn btn-primary" href="agendar.html">Agendar mi primera sesión →</a>
-      <a class="btn btn-ghost" href="#servicios">Ver servicios</a>
-    </div>
-    <div class="trust-row">
-      <div><div class="stat-n">+1.2k</div><div class="stat-l">Pacientes atendidos</div></div>
-      <div><div class="stat-n">4 años</div><div class="stat-l">De experiencia</div></div>
-      <div><div class="stat-n">4.9★</div><div class="stat-l">Satisfacción</div></div>
-    </div>
+  <div class="hero-img-wrap">
+    <img src="img/hero-fachada.jpg" alt="MOVIFLEX - Centro de Terapia Física y Rehabilitación" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, var(--teal-800), var(--teal-600))'"/>
   </div>
-  <div style="position:relative">
-    <div class="hero-photo">
-      <div class="placeholder"><span>FOTO PRINCIPAL · TERAPIA EN SESIÓN</span></div>
-    </div>
-    <div class="hero-card">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--teal-50);display:flex;align-items:center;justify-content:center;color:var(--teal-700)">★</div>
-        <div>
-          <div style="font-size:13px;font-weight:600">Carmen R.</div>
-          <div style="font-size:11px;color:var(--ink-500)">Post-op. rodilla</div>
-        </div>
+  <div class="hero-overlay">
+    <div class="hero-content">
+      <div class="badge"><span class="dot"></span> Carabayllo · Comas · Santa Isabel</div>
+      <h1>Recupera tu<br/><em>movimiento</em>,<br/>recupera tu vida.</h1>
+      <p>Centro de terapia física y rehabilitación con personal altamente capacitado. Atendemos lesiones deportivas, rehabilitación post-quirúrgica, dolor crónico y casos pediátricos y neurológicos.</p>
+      <div class="hero-actions">
+        <a class="btn btn-light" href="agendar.html">Agendar mi primera sesión →</a>
+        <a class="btn" href="#servicios" style="color:#fff;border:1px solid rgba(255,255,255,.3)">Ver servicios</a>
       </div>
-      <div style="font-size:12px;line-height:1.4;color:var(--ink-700)">"En 8 sesiones volví a caminar sin bastón. El equipo es excepcional."</div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-n">+1.2k</div><div class="hero-stat-l">Pacientes atendidos</div></div>
+        <div><div class="hero-stat-n">4 años</div><div class="hero-stat-l">De experiencia</div></div>
+        <div><div class="hero-stat-n">4.9★</div><div class="hero-stat-l">Satisfacción</div></div>
+      </div>
     </div>
-    <div class="hero-pill"><span class="dot"></span> Atención hoy · 4 horarios</div>
   </div>
 </section>
 
-<!-- SERVICIOS -->
+<!-- ESPECIALIDADES -->
 <section class="section" id="servicios" style="background:#fff;border-top:1px solid var(--ink-100)">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-bottom:48px">
+  <div class="spec-header">
     <div>
-      <span class="eyebrow">02 — Especialidades</span>
-      <h2 class="section-title" style="margin-top:16px">Cuatro áreas de<br/><em>especialización</em> clínica.</h2>
+      <span class="eyebrow">Especialidades Clínicas</span>
+      <h2>Cuatro áreas, un solo<br/><em>compromiso</em>: tu<br/>recuperación.</h2>
     </div>
-    <p style="align-self:end;font-size:16px;color:var(--ink-600);max-width:560px">Cada paciente recibe una evaluación inicial y un plan personalizado. Trabajamos con agentes físicos modernos y técnicas manuales validadas.</p>
+    <p style="align-self:end;font-size:16px;color:var(--ink-600);max-width:560px;line-height:1.6">Cada paciente recibe una evaluación inicial completa y un plan personalizado. Combinamos agentes físicos modernos, terapia manual y ejercicios guiados.</p>
   </div>
 
-  <div class="services-grid">
-    <div class="service-card">
-      <div class="service-icon">◐</div>
-      <h3>Terapia Física</h3>
-      <p style="font-size:14px;color:var(--ink-600);margin:0;line-height:1.55">Rehabilitación general, dolor crónico y recuperación funcional.</p>
-      <ul><li>Lesiones deportivas</li><li>Lumbalgia y cervicalgia</li><li>Rehabilitación post-quirúrgica</li><li>Dolor crónico</li></ul>
+  <div class="spec-grid">
+    <!-- Terapia Física -->
+    <div class="spec-card">
+      <div class="spec-card-img">
+        <div class="num">01</div>
+        <img src="img/terapia-fisica.jpg" alt="Terapia Física en sesión" onerror="this.style.display='none'"/>
+      </div>
+      <div class="spec-card-body">
+        <h3>Terapia Física</h3>
+        <p>Rehabilitación general, dolor crónico y recuperación funcional para adultos.</p>
+        <div class="spec-tags">
+          <span class="spec-tag">Lesiones deportivas</span>
+          <span class="spec-tag">Lumbalgia</span>
+          <span class="spec-tag">Post-quirúrgica</span>
+        </div>
+        <a class="spec-link" href="agendar.html?servicio=fisica">Agendar evaluación →</a>
+      </div>
     </div>
-    <div class="service-card">
-      <div class="service-icon">✿</div>
-      <h3>Terapia Pediátrica</h3>
-      <p style="font-size:14px;color:var(--ink-600);margin:0;line-height:1.55">Niños y adolescentes con necesidades específicas.</p>
-      <ul><li>Alteraciones psicomotoras</li><li>Pie plano</li><li>Síndrome de Down</li><li>Parálisis cerebral</li></ul>
+
+    <!-- Pediátrica -->
+    <div class="spec-card">
+      <div class="spec-card-img">
+        <div class="num">02</div>
+        <img src="img/pediatrica.jpg" alt="Terapia Pediátrica" onerror="this.style.display='none'"/>
+      </div>
+      <div class="spec-card-body">
+        <h3>Pediátrica</h3>
+        <p>Niños y adolescentes con necesidades específicas de desarrollo motor.</p>
+        <div class="spec-tags">
+          <span class="spec-tag">Pie plano</span>
+          <span class="spec-tag">Sd. Down</span>
+          <span class="spec-tag">Parálisis cerebral</span>
+        </div>
+        <a class="spec-link" href="agendar.html?servicio=pediatrica">Agendar evaluación →</a>
+      </div>
     </div>
-    <div class="service-card">
-      <div class="service-icon">◇</div>
-      <h3>Terapia Neurológica</h3>
-      <p style="font-size:14px;color:var(--ink-600);margin:0;line-height:1.55">Sistema nervioso central y periférico.</p>
-      <ul><li>ACV / Hemiplejía</li><li>Parkinson · Alzheimer</li><li>Esclerosis múltiple · ELA</li><li>Distrofia muscular</li></ul>
+
+    <!-- Neurológica -->
+    <div class="spec-card">
+      <div class="spec-card-img">
+        <div class="num">03</div>
+        <img src="img/neurologica.jpg" alt="Terapia Neurológica" onerror="this.style.display='none'"/>
+      </div>
+      <div class="spec-card-body">
+        <h3>Neurológica</h3>
+        <p>Sistema nervioso central y periférico. Recuperación funcional especializada.</p>
+        <div class="spec-tags">
+          <span class="spec-tag">ACV / Hemiplejía</span>
+          <span class="spec-tag">Parkinson</span>
+          <span class="spec-tag">Esclerosis múltiple</span>
+        </div>
+        <a class="spec-link" href="agendar.html?servicio=neurologica">Agendar evaluación →</a>
+      </div>
     </div>
-    <div class="service-card">
-      <div class="service-icon">❋</div>
-      <h3>Masoterapia</h3>
-      <p style="font-size:14px;color:var(--ink-600);margin:0;line-height:1.55">Técnicas manuales para alivio y recuperación.</p>
-      <ul><li>Masaje relajante</li><li>Descontracturante</li><li>Descarga muscular</li><li>Drenaje linfático</li></ul>
+
+    <!-- Masoterapia -->
+    <div class="spec-card">
+      <div class="spec-card-img">
+        <div class="num">04</div>
+        <img src="img/masoterapia.jpg" alt="Masoterapia" onerror="this.style.display='none'"/>
+      </div>
+      <div class="spec-card-body">
+        <h3>Masoterapia</h3>
+        <p>Técnicas manuales para alivio inmediato y recuperación muscular.</p>
+        <div class="spec-tags">
+          <span class="spec-tag">Relajante</span>
+          <span class="spec-tag">Descontracturante</span>
+          <span class="spec-tag">Drenaje linfático</span>
+        </div>
+        <a class="spec-link" href="agendar.html?servicio=masoterapia">Agendar evaluación →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALERÍA DE FOTOS -->
+<section class="gallery-section">
+  <div class="gallery-strip">
+    <img src="img/rehabilitacion.jpg" alt="Rehabilitación deportiva" onerror="this.style.background='var(--teal-50)';this.style.minHeight='240px'"/>
+    <img src="img/equilibrio.jpg" alt="Ejercicios de equilibrio" onerror="this.style.background='var(--teal-100)';this.style.minHeight='240px'"/>
+    <img src="img/tratamiento-lesiones.jpg" alt="Tratamiento de lesiones" onerror="this.style.background='var(--teal-50)';this.style.minHeight='240px'"/>
+    <img src="img/electroterapia.jpg" alt="Electroterapia" onerror="this.style.background='var(--teal-100)';this.style.minHeight='240px'"/>
+    <img src="img/ultrasonido.jpg" alt="Ultrasonido terapéutico" onerror="this.style.background='var(--teal-50)';this.style.minHeight='240px'"/>
+  </div>
+</section>
+
+<!-- NOSOTROS -->
+<section class="section" id="nosotros" style="background:var(--teal-50)">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center">
+    <div>
+      <span class="eyebrow">Sobre Nosotros</span>
+      <h2 class="section-title" style="margin-top:16px">Más que rehabilitación,<br/><em>transformamos</em> vidas.</h2>
+      <p style="font-size:16px;color:var(--ink-600);margin-top:18px;line-height:1.7;max-width:520px">MOVIFLEX nace con la misión de brindar atención fisioterapéutica de calidad a la comunidad de Lima Norte. Con más de 4 años de experiencia y 3 sedes, nos hemos convertido en referentes en terapia física, pediátrica, neurológica y masoterapia.</p>
+      <p style="font-size:16px;color:var(--ink-600);margin-top:12px;line-height:1.7;max-width:520px">Nuestro equipo combina formación clínica rigurosa con un trato cercano y humano. Cada terapeuta se especializa en áreas específicas para darte la mejor atención posible.</p>
+      <div style="display:flex;gap:16px;margin-top:28px">
+        <a class="btn btn-primary" href="agendar.html">Conocer más →</a>
+      </div>
+    </div>
+    <div style="border-radius:20px;overflow:hidden;height:400px;background:var(--teal-100)">
+      <img src="img/equilibrio.jpg" alt="Sesión de rehabilitación MOVIFLEX" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
     </div>
   </div>
 </section>
@@ -295,12 +483,11 @@
 <!-- PRECIOS -->
 <section class="section" id="precios">
   <div style="text-align:center;margin-bottom:48px">
-    <span class="eyebrow">03 — Tarifas</span>
+    <span class="eyebrow">Tarifas</span>
     <h2 class="section-title" style="margin-top:16px">Precios <em>transparentes</em>, paquetes que ahorran.</h2>
-    <p style="font-size:16px;color:var(--ink-600);margin:12px auto 0;max-width:560px">Reserva paquetes y reduce el costo por sesión. Aceptamos efectivo, Yape, Plin y transferencia.</p>
+    <p style="font-size:16px;color:var(--ink-600);margin:12px auto 0;max-width:560px">Reserva paquetes y reduce el costo por sesión. Aceptamos efectivo, Plin y transferencia.</p>
   </div>
   <div class="pricing-grid">
-    <!-- Terapia Física -->
     <div class="price-card">
       <h3 style="font-family:var(--f-display);font-size:24px;margin:0;font-weight:500">Terapia Física</h3>
       <p style="font-size:14px;color:var(--ink-600);margin:6px 0 18px">Atención general · adultos</p>
@@ -309,7 +496,6 @@
       <div class="price-row"><div><div style="font-size:14px;font-weight:600">10 sesiones</div><div class="price-save">Ahorra S/50</div></div><div class="price-num"><small>S/</small>350</div></div>
       <a class="btn btn-primary" href="agendar.html?servicio=fisica" style="width:100%;justify-content:center;margin-top:20px">Reservar →</a>
     </div>
-    <!-- Pediátrica -->
     <div class="price-card featured">
       <div class="lbl" style="position:absolute;top:-10px;right:24px;padding:4px 12px;border-radius:var(--r-pill);font-size:11px;font-weight:700;letter-spacing:0.06em">MÁS RESERVADO</div>
       <h3 style="font-family:var(--f-display);font-size:24px;margin:0;font-weight:500">Terapia Pediátrica</h3>
@@ -319,7 +505,6 @@
       <div class="price-row"><div><div style="font-size:14px;font-weight:600">10 sesiones</div><div class="price-save">Ahorra S/100</div></div><div class="price-num"><small>S/</small>400</div></div>
       <a class="btn btn-light" href="agendar.html?servicio=pediatrica" style="width:100%;justify-content:center;margin-top:20px">Reservar →</a>
     </div>
-    <!-- Neurológica -->
     <div class="price-card">
       <h3 style="font-family:var(--f-display);font-size:24px;margin:0;font-weight:500">Terapia Neurológica</h3>
       <p style="font-size:14px;color:var(--ink-600);margin:6px 0 18px">Sistema nervioso</p>
@@ -334,7 +519,7 @@
 <!-- PROCESO -->
 <section class="section" id="proceso" style="background:#fff;border-top:1px solid var(--ink-100)">
   <div style="margin-bottom:48px">
-    <span class="eyebrow">04 — Cómo funciona</span>
+    <span class="eyebrow">Cómo funciona</span>
     <h2 class="section-title" style="margin-top:16px">Tu camino a la <em>recuperación</em>, paso a paso.</h2>
   </div>
   <div class="process-grid">
@@ -345,11 +530,50 @@
   </div>
 </section>
 
+<!-- SEDES -->
+<section class="section" id="sedes" style="background:var(--teal-50)">
+  <div style="margin-bottom:48px">
+    <span class="eyebrow">Nuestras Sedes</span>
+    <h2 class="section-title" style="margin-top:16px">3 sedes para estar más <em>cerca</em> de ti.</h2>
+  </div>
+  <div class="sedes-grid">
+    <div class="sede-card">
+      <div class="sede-card-img">
+        <img src="img/hero-fachada.jpg" alt="MOVIFLEX Carabayllo" onerror="this.style.display='none'"/>
+      </div>
+      <div class="sede-card-body">
+        <h4>MOVIFLEX Carabayllo</h4>
+        <p>Santa Isabel, Carabayllo</p>
+        <p style="font-size:13px;color:var(--ink-500)">Lun-Sáb · 8:00 am — 8:00 pm</p>
+        <a class="spec-link" href="agendar.html" style="margin-top:12px">Agendar aquí →</a>
+      </div>
+    </div>
+    <div class="sede-card">
+      <div class="sede-card-img" style="background:var(--teal-100)"></div>
+      <div class="sede-card-body">
+        <h4>MOVIFLEX Comas</h4>
+        <p>Comas, Lima</p>
+        <p style="font-size:13px;color:var(--ink-500)">Lun-Sáb · 8:00 am — 8:00 pm</p>
+        <a class="spec-link" href="agendar.html" style="margin-top:12px">Agendar aquí →</a>
+      </div>
+    </div>
+    <div class="sede-card">
+      <div class="sede-card-img" style="background:var(--teal-100)"></div>
+      <div class="sede-card-body">
+        <h4>MOVIFLEX Santa Isabel</h4>
+        <p>Santa Isabel, Lima</p>
+        <p style="font-size:13px;color:var(--ink-500)">Lun-Sáb · 8:00 am — 8:00 pm</p>
+        <a class="spec-link" href="agendar.html" style="margin-top:12px">Agendar aquí →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- EQUIPO -->
-<section class="section" id="equipo" style="background:var(--teal-50)">
+<section class="section" id="equipo">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center">
     <div>
-      <span class="eyebrow">05 — Equipo</span>
+      <span class="eyebrow">Equipo</span>
       <h2 class="section-title" style="margin-top:16px">Profesionales colegiados con<br/><em>vocación</em> de servicio.</h2>
       <p style="font-size:16px;color:var(--ink-600);margin-top:16px;line-height:1.6">Nuestro equipo combina formación clínica rigurosa con un trato cercano. Cada terapeuta se especializa en áreas específicas para darte la mejor atención.</p>
     </div>
@@ -368,6 +592,40 @@
         <div class="avatar">MQ</div>
         <div style="flex:1"><div style="font-size:15px;font-weight:600">Lic. María Quispe</div><div style="font-size:13px;color:var(--ink-600)">Masoterapia · Deportiva</div></div>
         <div class="team-tag">5 años</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section class="section" id="testimonios" style="background:#fff;border-top:1px solid var(--ink-100)">
+  <div style="text-align:center;margin-bottom:48px">
+    <span class="eyebrow">Testimonios</span>
+    <h2 class="section-title" style="margin-top:16px">Lo que dicen nuestros <em>pacientes</em>.</h2>
+  </div>
+  <div class="testimonios-grid">
+    <div class="testimonio-card">
+      <div class="testimonio-stars">★★★★★</div>
+      <p class="testimonio-text">"En 8 sesiones volví a caminar sin bastón. El equipo es excepcional y muy profesional. Totalmente recomendado."</p>
+      <div class="testimonio-author">
+        <div class="avatar" style="background:var(--teal-100);color:var(--teal-800)">CR</div>
+        <div><div class="name">Carmen R.</div><div class="detail">Post-op. rodilla · Carabayllo</div></div>
+      </div>
+    </div>
+    <div class="testimonio-card">
+      <div class="testimonio-stars">★★★★★</div>
+      <p class="testimonio-text">"Mi hijo tiene parálisis cerebral y el avance que ha tenido con la terapia pediátrica ha sido increíble. Gracias MOVIFLEX."</p>
+      <div class="testimonio-author">
+        <div class="avatar" style="background:var(--teal-100);color:var(--teal-800)">LM</div>
+        <div><div class="name">Laura M.</div><div class="detail">Terapia pediátrica · Comas</div></div>
+      </div>
+    </div>
+    <div class="testimonio-card">
+      <div class="testimonio-stars">★★★★★</div>
+      <p class="testimonio-text">"Después de mi lesión deportiva, pensé que no volvería a correr. En 3 meses ya estaba entrenando de nuevo. Excelente atención."</p>
+      <div class="testimonio-author">
+        <div class="avatar" style="background:var(--teal-100);color:var(--teal-800)">JP</div>
+        <div><div class="name">José P.</div><div class="detail">Lesión deportiva · Santa Isabel</div></div>
       </div>
     </div>
   </div>
@@ -394,7 +652,7 @@
       </a>
       <div style="height:1px;background:rgba(255,255,255,.15);margin:16px 0"></div>
       <div class="info">
-        <div>📍 Santa Isabel, Carabayllo · Lima</div>
+        <div>📍 3 sedes en Lima Norte</div>
         <div>🕐 Lun-Sáb · 8:00 am — 8:00 pm</div>
         <div>✉ fisiomerakicarabayllo@gmail.com</div>
         <div>📷 @moviflex.terapiafisica</div>
@@ -415,14 +673,14 @@
       <a href="#servicios">Neurológica</a><a href="#servicios">Masoterapia</a>
     </div></div>
     <div><h6>Centro</h6><div class="col">
-      <a href="#equipo">Equipo</a><a href="#proceso">Proceso</a>
+      <a href="#equipo">Equipo</a><a href="#sedes">Sedes</a>
       <a href="#precios">Precios</a><a href="agendar.html">Agendar</a>
     </div></div>
     <div><h6>Contacto</h6><div class="col">
       <a href="tel:+51948258828">+51 948 258 828</a>
       <a href="mailto:fisiomerakicarabayllo@gmail.com">Email</a>
       <a href="https://instagram.com/moviflex.terapiafisica" target="_blank">Instagram</a>
-      <a>Carabayllo, Lima</a>
+      <a>Lima Norte</a>
     </div></div>
   </div>
   <div class="footer-bottom">
@@ -438,7 +696,6 @@
 
 <script src="logo.js"></script>
 <script>
-  // Smooth-scroll for in-page anchors
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       const id = a.getAttribute('href');
