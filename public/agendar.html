@@ -146,6 +146,32 @@
   .metodo-pill:hover { border-color: var(--teal-600); }
   .metodo-pill.sel { background: var(--teal-700); color: #fff; border-color: var(--teal-700); }
 
+  /* ── QR / Bank info box ── */
+  .pago-info-box {
+    display: none; margin-top: 14px; padding: 16px;
+    background: var(--ink-50); border-radius: 12px; border: 1px solid var(--ink-200);
+    text-align: center;
+  }
+  .pago-info-box.show { display: block; }
+  .pago-info-box .qr-placeholder {
+    width: 180px; height: 180px; margin: 10px auto;
+    background: #fff; border: 2px dashed var(--ink-300); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--ink-500); text-align: center; padding: 10px;
+  }
+  .pago-info-box .qr-img {
+    width: 200px; height: 200px; margin: 10px auto;
+    border-radius: 12px; object-fit: contain;
+  }
+  .pago-info-box .bank-details {
+    text-align: left; font-size: 13px; line-height: 1.8;
+  }
+  .pago-info-box .bank-details strong { color: var(--ink-800); }
+  .pago-info-box .info-note {
+    font-size: 11px; color: var(--ink-600); margin-top: 10px;
+    padding: 8px 12px; background: #FFF8E1; border-radius: 8px; line-height: 1.5;
+  }
+
   /* ── Review card ── */
   .review-card { background: #fff; border-radius: 16px; padding: 18px; border: 1px solid var(--ink-100); box-shadow: var(--sh-1); }
   .review-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 13px; }
@@ -271,26 +297,50 @@
     <div class="summary" id="summary-4"></div>
 
     <div class="pago-opts">
-      <!-- Online -->
+      <!-- Pagar antes (online) -->
       <div class="pago-card" data-pago="online" id="pago-online">
         <div class="pago-head">
-          <div class="pago-ic online">💳</div>
+          <div class="pago-ic online">📱</div>
           <div>
-            <div class="pago-title">Pagar online</div>
-            <div class="pago-sub">Yape · Plin · Tarjeta</div>
+            <div class="pago-title">Pagar antes de ir</div>
+            <div class="pago-sub">Yape · Plin · Transferencia bancaria</div>
           </div>
         </div>
-        <div class="pago-badge green">✓ Tu cita se confirma al instante</div>
+        <div class="pago-badge yellow">⏳ Se confirma cuando verifiquemos el pago</div>
         <div class="metodo-sub" id="metodo-online-sub">
           <div class="metodo-sub-label">Elige tu método:</div>
           <div class="metodo-pills" id="metodo-online-pills">
             <div class="metodo-pill" data-metodo="yape">Yape</div>
             <div class="metodo-pill" data-metodo="plin">Plin</div>
-            <div class="metodo-pill" data-metodo="tarjeta">Tarjeta</div>
+            <div class="metodo-pill" data-metodo="transferencia">Transferencia</div>
+          </div>
+          <!-- QR Yape -->
+          <div class="pago-info-box" id="info-yape">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">Escanea el QR de Yape</div>
+            <div class="qr-placeholder" id="qr-yape">QR de Yape próximamente</div>
+            <div class="info-note">Realiza el pago y envía el comprobante por WhatsApp. Confirmaremos tu cita en minutos.</div>
+          </div>
+          <!-- QR Plin -->
+          <div class="pago-info-box" id="info-plin">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">Escanea el QR de Plin</div>
+            <div class="qr-placeholder" id="qr-plin">QR de Plin próximamente</div>
+            <div class="info-note">Realiza el pago y envía el comprobante por WhatsApp. Confirmaremos tu cita en minutos.</div>
+          </div>
+          <!-- Transferencia -->
+          <div class="pago-info-box" id="info-transferencia">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px">Datos para transferencia</div>
+            <div class="bank-details">
+              <strong>Banco:</strong> Por confirmar<br>
+              <strong>Cuenta:</strong> Por confirmar<br>
+              <strong>CCI:</strong> Por confirmar<br>
+              <strong>Titular:</strong> Por confirmar<br>
+              <strong>DNI/RUC:</strong> Por confirmar
+            </div>
+            <div class="info-note">Realiza la transferencia y envía el comprobante por WhatsApp. Confirmaremos tu cita en minutos.</div>
           </div>
         </div>
       </div>
-      <!-- Efectivo -->
+      <!-- Pagar en el local -->
       <div class="pago-card" data-pago="efectivo" id="pago-efectivo">
         <div class="pago-head">
           <div class="pago-ic efectivo">💵</div>
@@ -384,7 +434,7 @@ const state = {
   date: null,
   slot: null,
   pagoTipo: null,   // 'online' | 'efectivo'
-  metodo: null,      // 'yape' | 'plin' | 'tarjeta' | 'efectivo'
+  metodo: null,      // 'yape' | 'plin' | 'transferencia' | 'efectivo'
 };
 
 // ==========================================
@@ -531,6 +581,10 @@ function renderSummary3() {
 // ==========================================
 // RENDER: Pago (Step 4)
 // ==========================================
+function hideAllInfoBoxes() {
+  document.querySelectorAll('.pago-info-box').forEach(b => b.classList.remove('show'));
+}
+
 function initPago() {
   // Summary
   if (state.service) {
@@ -544,23 +598,31 @@ function initPago() {
   const efectivoCard = document.getElementById('pago-efectivo');
   const onlineSub = document.getElementById('metodo-online-sub');
 
+  // Reset state on re-enter
+  hideAllInfoBoxes();
+  onlineCard.classList.remove('sel');
+  efectivoCard.classList.remove('sel');
+  onlineSub.classList.remove('show');
+  document.querySelectorAll('#metodo-online-pills .metodo-pill').forEach(p => p.classList.remove('sel'));
+
   function selectPago(tipo) {
     state.pagoTipo = tipo;
     onlineCard.classList.toggle('sel', tipo === 'online');
     efectivoCard.classList.toggle('sel', tipo === 'efectivo');
     onlineSub.classList.toggle('show', tipo === 'online');
+    hideAllInfoBoxes();
 
     if (tipo === 'efectivo') {
       state.metodo = 'efectivo';
-      // Clear metodo pill selections
       document.querySelectorAll('#metodo-online-pills .metodo-pill').forEach(p => p.classList.remove('sel'));
     } else {
-      state.metodo = null; // Must pick sub-method
+      state.metodo = null;
     }
   }
 
   onlineCard.addEventListener('click', (e) => {
     if (e.target.closest('.metodo-pill')) return;
+    if (e.target.closest('.pago-info-box')) return;
     selectPago('online');
   });
   efectivoCard.addEventListener('click', () => selectPago('efectivo'));
@@ -571,6 +633,10 @@ function initPago() {
       state.metodo = pill.dataset.metodo;
       document.querySelectorAll('#metodo-online-pills .metodo-pill').forEach(p => p.classList.remove('sel'));
       pill.classList.add('sel');
+      // Show corresponding info box
+      hideAllInfoBoxes();
+      const box = document.getElementById('info-' + pill.dataset.metodo);
+      if (box) box.classList.add('show');
     });
   });
 }
@@ -585,11 +651,9 @@ function renderReview() {
   const sedeName = state.sede?.nombre || '—';
 
   const metodosLabel = {
-    yape: 'Yape (online)', plin: 'Plin (online)', tarjeta: 'Tarjeta (online)', efectivo: 'Efectivo en local'
+    yape: 'Yape', plin: 'Plin', transferencia: 'Transferencia bancaria', efectivo: 'Efectivo en local'
   };
-  const estadoLabel = state.pagoTipo === 'online'
-    ? '<span style="color:#2E7D32;font-weight:700">✓ Pagado</span>'
-    : '<span style="color:#E65100;font-weight:700">⏳ Pendiente</span>';
+  const estadoLabel = '<span style="color:#E65100;font-weight:700">⏳ Pendiente de verificación</span>';
 
   document.getElementById('review').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px dashed var(--ink-200)">
@@ -676,8 +740,8 @@ function buildWhatsAppLink() {
   const dt = parseLocalDate(state.date);
   const dateStr = `${dayNames[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}/${dt.getFullYear()}`;
 
-  const metodosLabel = { yape: 'Yape', plin: 'Plin', tarjeta: 'Tarjeta', efectivo: 'Efectivo en local' };
-  const estadoLabel = state.pagoTipo === 'online' ? 'Pagado online' : 'Pendiente (paga en local)';
+  const metodosLabel = { yape: 'Yape', plin: 'Plin', transferencia: 'Transferencia bancaria', efectivo: 'Efectivo en local' };
+  const estadoLabel = 'Pendiente de verificación';
 
   const lines = [
     `*Solicitud de cita - MOVIFLEX*`, ``,
@@ -767,7 +831,7 @@ document.getElementById('btn-next').addEventListener('click', () => {
     showStep(4);
   } else if (s === 4) {
     if (!state.pagoTipo) return showToast('Elige un método de pago.', true);
-    if (state.pagoTipo === 'online' && !state.metodo) return showToast('Elige Yape, Plin o Tarjeta.', true);
+    if (state.pagoTipo === 'online' && !state.metodo) return showToast('Elige Yape, Plin o Transferencia.', true);
     showStep(5);
   }
 });
