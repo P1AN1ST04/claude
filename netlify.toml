@@ -1,0 +1,7 @@
+[build]
+  publish = "public"
+
+[[redirects]]
+  from = "/agendar"
+  to = "/agendar.html"
+  status = 200

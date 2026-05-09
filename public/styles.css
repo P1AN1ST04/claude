@@ -1,0 +1,130 @@
+/* MOVIFLEX — Sitio en producción · estilos compartidos */
+:root {
+  --teal-900: #0E4F4A;
+  --teal-800: #146E68;
+  --teal-700: #1A8780;
+  --teal-600: #1F9189;
+  --teal-500: #28A89E;
+  --teal-400: #4DBDB3;
+  --teal-200: #B8E3DE;
+  --teal-100: #D9EFEC;
+  --teal-50:  #EEF8F6;
+
+  --ink-900: #1A1F22;
+  --ink-800: #2A3138;
+  --ink-700: #3D464E;
+  --ink-600: #5A6571;
+  --ink-500: #7A8590;
+  --ink-400: #9CA5AF;
+  --ink-300: #C2C9D0;
+  --ink-200: #E1E5E9;
+  --ink-100: #EFF1F3;
+  --ink-50:  #F7F8F9;
+  --paper:   #FBFAF7;
+
+  --coral-500: #E8806B;
+  --gold-500:  #D9A441;
+  --ok:  #2F9E6E;
+  --warn: #D9A441;
+  --bad: #C9523F;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  --sh-1: 0 1px 2px rgba(20, 30, 40, .05), 0 1px 3px rgba(20, 30, 40, .04);
+  --sh-2: 0 2px 8px rgba(20, 30, 40, .06), 0 8px 24px rgba(20, 30, 40, .05);
+  --sh-3: 0 8px 32px rgba(20, 30, 40, .08), 0 24px 64px rgba(20, 30, 40, .08);
+  --sh-teal: 0 12px 32px rgba(31, 145, 137, .25);
+
+  --f-sans: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --f-display: "Fraunces", Georgia, serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--f-sans);
+  color: var(--ink-900);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+img { display: block; max-width: 100%; }
+
+/* ── Brand mark + logo ── */
+.logo { display: inline-flex; align-items: center; gap: 10px; }
+.logo .mark { width: 40px; height: 40px; flex: none; }
+.logo .word { font-weight: 800; font-size: 22px; letter-spacing: 0.01em; line-height: 1; }
+.logo .word .alt { color: var(--teal-600); }
+.logo .tag { font-size: 8.5px; letter-spacing: 0.18em; color: var(--ink-600); margin-top: 4px; }
+.logo--light .word { color: #fff; }
+.logo--light .word .alt { color: #fff; }
+.logo--light .tag { color: rgba(255,255,255,.7); }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 20px; border-radius: var(--r-pill);
+  font-weight: 600; font-size: 14px;
+  transition: transform .15s, box-shadow .15s, background .15s;
+}
+.btn-primary { background: var(--teal-600); color: #fff; box-shadow: var(--sh-teal); }
+.btn-primary:hover { background: var(--teal-700); transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--ink-800); border: 1px solid var(--ink-200); }
+.btn-ghost:hover { border-color: var(--ink-400); }
+.btn-light { background: #fff; color: var(--teal-800); }
+.btn-light:hover { background: var(--ink-50); }
+
+/* ── Form fields ── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 11px; color: var(--ink-600); font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.field input, .field select, .field textarea {
+  padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--ink-200); background: #fff;
+  font: inherit; color: inherit; transition: border .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--teal-600);
+  box-shadow: 0 0 0 4px var(--teal-50);
+}
+.field textarea { min-height: 84px; resize: vertical; }
+
+/* ── Reusable section ── */
+.section { padding: 80px 56px; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+  color: var(--teal-700); text-transform: uppercase;
+  background: var(--teal-50); padding: 6px 12px; border-radius: var(--r-pill);
+}
+.section-title {
+  font-family: var(--f-display); font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.1; font-weight: 400; margin: 0;
+  letter-spacing: -0.02em;
+}
+.section-title em { font-style: italic; color: var(--teal-700); }
+
+/* ── Whatsapp float button ── */
+.wa-float {
+  position: fixed; bottom: 24px; right: 24px; z-index: 100;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: #25D366; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(37, 211, 102, .4);
+  transition: transform .15s;
+}
+.wa-float:hover { transform: scale(1.08); }
+
+/* Mobile */
+@media (max-width: 720px) {
+  .section { padding: 56px 20px; }
+}
