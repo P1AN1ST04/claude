@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Iniciar sesión · MOVIFLEX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: linear-gradient(135deg, var(--teal-900) 0%, var(--teal-700) 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+  .login-card {
+    background: #fff; border-radius: 20px; padding: 40px 36px; max-width: 400px; width: 100%;
+    box-shadow: 0 24px 64px rgba(0,0,0,.25);
+  }
+  .login-card .logo-area { text-align: center; margin-bottom: 28px; }
+  .login-card .logo-area h1 { font-family: var(--f-sans); font-weight: 800; font-size: 26px; margin: 0; letter-spacing: 0.01em; }
+  .login-card .logo-area h1 .alt { color: var(--teal-600); }
+  .login-card .logo-area .tag { font-size: 10px; letter-spacing: 0.15em; color: var(--ink-500); margin-top: 4px; text-transform: uppercase; }
+  .login-card .title { font-family: var(--f-display); font-size: 22px; font-weight: 500; text-align: center; margin-bottom: 6px; }
+  .login-card .subtitle { font-size: 13px; color: var(--ink-600); text-align: center; margin-bottom: 24px; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--ink-700); }
+  .field input {
+    padding: 11px 14px; border: 1px solid var(--ink-200); border-radius: 10px;
+    font-size: 14px; font-family: var(--f-sans); outline: none; transition: border .15s;
+  }
+  .field input:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(40,168,158,.12); }
+
+  .btn-login {
+    width: 100%; padding: 13px; border-radius: 12px; background: var(--teal-700);
+    color: #fff; font-weight: 700; font-size: 15px; border: none; cursor: pointer;
+    box-shadow: var(--sh-teal); transition: background .15s, transform .15s;
+    margin-top: 8px;
+  }
+  .btn-login:hover { background: var(--teal-800); transform: translateY(-1px); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .error-msg {
+    background: rgba(201,82,63,.08); color: var(--bad); font-size: 13px; padding: 10px 14px;
+    border-radius: 10px; margin-bottom: 16px; display: none; text-align: center;
+  }
+  .error-msg.show { display: block; }
+
+  .back-link { display: block; text-align: center; margin-top: 20px; font-size: 12px; color: var(--ink-500); }
+  .back-link a { color: var(--teal-700); font-weight: 600; }
+  .back-link a:hover { text-decoration: underline; }
+
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo-area">
+    <h1>MOVI<span class="alt">FLEX</span></h1>
+    <div class="tag">Fisioterapia & Rehabilitacion</div>
+  </div>
+
+  <div class="title">Panel administrativo</div>
+  <div class="subtitle">Ingresa con tu cuenta para acceder al dashboard.</div>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <form id="login-form" autocomplete="on">
+    <div class="field">
+      <label for="email">Correo electronico</label>
+      <input id="email" type="email" placeholder="admin@moviflex.pe" required autocomplete="email" />
+    </div>
+    <div class="field">
+      <label for="password">Contrasena</label>
+      <input id="password" type="password" placeholder="Tu contrasena" required autocomplete="current-password" />
+    </div>
+    <button type="submit" class="btn-login" id="btn-login">Iniciar sesion</button>
+  </form>
+
+  <div class="back-link"><a href="/">Volver al sitio</a></div>
+</div>
+
+<script src="js/env.js"></script>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const supabase = createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_PUBLISHABLE_KEY);
+
+// If already logged in, redirect to dashboard
+const { data: { session } } = await supabase.auth.getSession();
+if (session) {
+  window.location.href = '/dashboard.html';
+}
+
+const form = document.getElementById('login-form');
+const btn = document.getElementById('btn-login');
+const errDiv = document.getElementById('error-msg');
+
+function showError(msg) {
+  errDiv.textContent = msg;
+  errDiv.classList.add('show');
+}
+function hideError() { errDiv.classList.remove('show'); }
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideError();
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) { showError('Completa todos los campos.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Ingresando...';
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      showError(error.message === 'Invalid login credentials'
+        ? 'Correo o contrasena incorrectos.'
+        : error.message);
+      btn.disabled = false;
+      btn.textContent = 'Iniciar sesion';
+      return;
+    }
+
+    // Verify user has a profile (admin or recepcionista)
+    const { data: perfil, error: perfilErr } = await supabase
+      .from('perfiles')
+      .select('rol')
+      .eq('id', data.user.id)
+      .single();
+
+    if (perfilErr || !perfil) {
+      showError('Tu cuenta no tiene acceso al panel.');
+      await supabase.auth.signOut();
+      btn.disabled = false;
+      btn.textContent = 'Iniciar sesion';
+      return;
+    }
+
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    showError('Error de conexion. Intenta de nuevo.');
+    btn.disabled = false;
+    btn.textContent = 'Iniciar sesion';
+  }
+});
+</script>
+</body>
+</html>

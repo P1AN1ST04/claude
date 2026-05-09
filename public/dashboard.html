@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Dashboard · MOVIFLEX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: #F7F8F9; }
+  .loading-screen { position:fixed; inset:0; background:#F7F8F9; display:flex; align-items:center; justify-content:center; z-index:999; }
+  .loading-screen .spinner { width:36px; height:36px; border:3px solid var(--ink-200); border-top-color:var(--teal-600); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .side { background: #fff; border-right: 1px solid var(--ink-100); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .side h6 { font-size: 10px; color: var(--ink-400); letter-spacing: .1em; padding: 8px 12px 4px; margin: 0; font-weight: 600; text-transform: uppercase; }
+  .nav-item { padding: 10px 12px; border-radius: 10px; font-size: 13px; color: var(--ink-700); display:flex; align-items:center; gap: 10px; font-weight: 500; cursor: pointer; transition: background .12s; }
+  .nav-item:hover { background: var(--ink-50); }
+  .nav-item.on { background: var(--teal-700); color: #fff; font-weight: 600; }
+  .nav-item.on:hover { background: var(--teal-800); }
+  .nav-item .ic { width: 18px; font-size: 13px; opacity: 0.7; text-align: center; }
+  .nav-item.on .ic { opacity: 1; }
+  .side-user { margin-top: auto; padding: 12px; background: var(--teal-50); border-radius: 12px; font-size: 12px; }
+
+  main { overflow-x: hidden; padding: 20px 28px 32px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .topbar .h1 { font-family: var(--f-display); font-size: 28px; font-weight: 500; margin: 0; letter-spacing: -0.01em; }
+  .topbar .sub { font-size: 13px; color: var(--ink-600); margin-top: 4px; }
+  .topbar .date { font-size: 11px; color: var(--ink-500); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+
+  .btn-sm { padding: 8px 14px; border-radius: 10px; font-weight: 600; font-size: 13px; display:inline-flex; align-items:center; gap: 8px; cursor: pointer; transition: background .12s, transform .12s; }
+  .btn-sm.btn-primary { background: var(--teal-700); color: #fff; box-shadow: var(--sh-teal); }
+  .btn-sm.btn-primary:hover { background: var(--teal-800); transform: translateY(-1px); }
+  .btn-sm.btn-ghost { background: #fff; color: var(--ink-800); border: 1px solid var(--ink-200); }
+  .btn-sm.btn-ghost:hover { border-color: var(--ink-400); }
+  .btn-sm.btn-danger { background: #fff; color: var(--bad); border: 1px solid var(--ink-200); }
+
+  .card { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid var(--ink-100); }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi .lbl { font-size: 11px; color: var(--ink-500); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+  .kpi .val { font-family: var(--f-display); font-size: 30px; font-weight: 500; letter-spacing: -0.01em; margin-top: 8px; }
+  .kpi .sub { font-size: 12px; color: var(--ink-500); margin-top: 6px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  /* Table */
+  .table { width: 100%; }
+  .table .th, .table .tr {
+    display: grid; grid-template-columns: 70px 1.4fr 1.5fr 1fr 1fr 1fr 100px 40px;
+    gap: 10px; padding: 10px 12px; align-items: center;
+  }
+  .table .th { font-size: 10px; color: var(--ink-500); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; border-bottom: 1px solid var(--ink-100); }
+  .table .tr { font-size: 12px; border-bottom: 1px solid var(--ink-50); }
+  .table .tr:last-child { border-bottom: none; }
+  .table .tr .h { font-family: var(--f-mono); font-size: 11px; color: var(--ink-600); }
+  .table .tr .name { font-weight: 600; }
+  .table .tr .amt { font-family: var(--f-mono); font-weight: 600; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
+  .badge-paid { background: rgba(47,158,110,.1); color: var(--ok); }
+  .badge-due { background: rgba(217,164,65,.12); color: var(--gold-500); }
+  .badge-egreso { background: rgba(201,82,63,.08); color: var(--bad); }
+  .delete-btn { color: var(--ink-400); cursor: pointer; padding: 4px; border-radius: 4px; font-size: 14px; }
+  .delete-btn:hover { color: var(--bad); background: rgba(201,82,63,.08); }
+
+  /* Cash card */
+  .cash-card { background: linear-gradient(135deg, var(--teal-800), var(--teal-700)); color: #fff; border-radius: 14px; padding: 22px; }
+  .cash-card .l1 { font-size: 11px; opacity: 0.8; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+  .cash-card .total { font-family: var(--f-display); font-size: 44px; font-weight: 500; margin-top: 6px; letter-spacing: -0.01em; }
+  .cash-card .total small { font-size: 18px; opacity: 0.8; margin-right: 4px; }
+
+  .empty { padding: 40px 20px; text-align: center; color: var(--ink-500); font-size: 13px; border: 2px dashed var(--ink-200); border-radius: 12px; margin: 8px 12px; }
+
+  /* Method bar */
+  .method-bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; margin-bottom: 16px; background: var(--ink-100); }
+
+  /* ── View: Citas ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .citas-table { width: 100%; }
+  .citas-table .th, .citas-table .tr {
+    display: grid; grid-template-columns: 90px 1.4fr 1.2fr 1fr 1fr 120px;
+    gap: 10px; padding: 10px 12px; align-items: center;
+  }
+  .citas-table .th { font-size: 10px; color: var(--ink-500); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; border-bottom: 1px solid var(--ink-100); }
+  .citas-table .tr { font-size: 12px; border-bottom: 1px solid var(--ink-50); }
+  .citas-table .tr:last-child { border-bottom: none; }
+
+  .badge-agendada { background: rgba(40,168,158,.1); color: var(--teal-700); }
+  .badge-atendida { background: rgba(47,158,110,.1); color: var(--ok); }
+  .badge-no_vino { background: rgba(217,164,65,.12); color: var(--gold-500); }
+  .badge-cancelada { background: rgba(201,82,63,.08); color: var(--bad); }
+
+  .status-select {
+    font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 8px;
+    border: 1px solid var(--ink-200); background: #fff; cursor: pointer; font-family: var(--f-sans);
+  }
+
+  /* Filter bar */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-bar select, .filter-bar input {
+    padding: 8px 12px; border: 1px solid var(--ink-200); border-radius: 8px;
+    font-size: 12px; font-family: var(--f-sans); background: #fff;
+  }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(20,30,40,.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 28px; max-width: 480px; width: 100%; box-shadow: var(--sh-3); max-height: 90vh; overflow: auto; }
+  .modal h3 { font-family: var(--f-display); font-size: 24px; margin: 0 0 6px; font-weight: 500; }
+  .modal .sub { font-size: 13px; color: var(--ink-600); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .modal-actions button { flex: 1; padding: 12px; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--ink-700); }
+  .field input, .field select {
+    padding: 10px 12px; border: 1px solid var(--ink-200); border-radius: 10px;
+    font-size: 13px; font-family: var(--f-sans); outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--teal-500); }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 200; transform: translateY(80px); opacity: 0; transition: all .3s ease; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--ok); color: #fff; }
+  .toast.error { background: var(--bad); color: #fff; }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .side { display: none; }
+    main { padding: 16px; }
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .table .th, .table .tr { grid-template-columns: 56px 1fr 90px; }
+    .table .th { display: none; }
+    .table .tr .therapist, .table .tr .method, .table .tr .svc { display: none; }
+    .citas-table .th, .citas-table .tr { grid-template-columns: 80px 1fr 100px; }
+    .citas-table .th { display: none; }
+    .citas-table .tr .svc, .citas-table .tr .local, .citas-table .tr .origen { display: none; }
+  }
+
+  @media print {
+    .side, .topbar .actions, .delete-btn, #btn-add, .nav-mobile { display: none !important; }
+    body { background: #fff; }
+    .app { grid-template-columns: 1fr; }
+    main { padding: 0; }
+  }
+
+  /* Logout btn */
+  .btn-logout { color: var(--bad); font-size: 12px; font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
+  .btn-logout:hover { background: rgba(201,82,63,.06); }
+
+  /* Sede select in topbar */
+  .sede-select { padding: 6px 10px; border: 1px solid var(--ink-200); border-radius: 8px; font-size: 12px; font-family: var(--f-sans); background: #fff; }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading-screen">
+  <div class="spinner"></div>
+</div>
+
+<div class="app" id="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div style="padding: 4px 8px 18px; border-bottom: 1px solid var(--ink-100); margin-bottom: 14px">
+      <div style="font-weight:800;font-size:20px">MOVI<span style="color:var(--teal-600)">FLEX</span></div>
+      <div style="font-size:8px;letter-spacing:.15em;color:var(--ink-500);margin-top:2px">PANEL ADMINISTRATIVO</div>
+    </div>
+    <h6>Principal</h6>
+    <div class="nav-item on" data-view="caja"><span class="ic">&#9638;</span> Cierre de caja</div>
+    <div class="nav-item" data-view="citas"><span class="ic">&#128197;</span> Citas</div>
+    <div class="side-user" id="side-user"></div>
+    <button class="btn-logout" id="btn-logout">Cerrar sesion</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- ═══ VIEW: CAJA ═══ -->
+    <div class="view active" id="view-caja">
+
+      <div class="topbar">
+        <div>
+          <div class="date" id="today-date"></div>
+          <h1 class="h1">Caja del dia</h1>
+          <div class="sub">Registra ingresos y egresos. Datos en tiempo real desde Supabase.</div>
+        </div>
+        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select class="sede-select" id="sede-select"></select>
+          <button class="btn-sm btn-ghost" id="btn-export">Exportar CSV</button>
+          <button class="btn-sm btn-primary" id="btn-add">+ Registrar movimiento</button>
+        </div>
+      </div>
+
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+            <div>
+              <div style="font-size:13px;font-weight:600">Movimientos del dia</div>
+              <div style="font-size:11px;color:var(--ink-500);margin-top:2px" id="movements-sub">0 transacciones</div>
+            </div>
+          </div>
+          <div class="table" id="table-head">
+            <div class="th">
+              <div>Hora</div><div>Paciente</div><div>Servicio</div>
+              <div>Terapeuta</div><div>Metodo</div><div>Monto</div>
+              <div>Estado</div><div></div>
+            </div>
+          </div>
+          <div id="movements"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="cash-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div class="l1" id="close-label">CIERRE DE HOY</div>
+                <div class="total"><small>S/</small><span id="cash-total">0.00</span></div>
+                <div style="font-size:12px;opacity:0.85;margin-top:4px"><span id="cash-count">0</span> movimientos</div>
+              </div>
+              <div style="text-align:right;font-size:11px;opacity:0.85;line-height:1.5">
+                <div>Ingresos: S/ <span id="cash-in">0</span></div>
+                <div>Egresos: S/ <span id="cash-out">0</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-size:13px;font-weight:600">Por metodo de pago</div>
+            <div style="font-size:11px;color:var(--ink-500);margin-top:2px;margin-bottom:14px">Distribucion de ingresos</div>
+            <div class="method-bar" id="method-bar"></div>
+            <div id="method-list" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ VIEW: CITAS ═══ -->
+    <div class="view" id="view-citas">
+
+      <div class="topbar">
+        <div>
+          <div class="date" id="citas-date"></div>
+          <h1 class="h1">Citas</h1>
+          <div class="sub">Gestiona las citas agendadas. Cambia el estado de cada una.</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="date" id="citas-filter-date" />
+        <select id="citas-filter-estado">
+          <option value="">Todos los estados</option>
+          <option value="agendada">Agendada</option>
+          <option value="atendida">Atendida</option>
+          <option value="no_vino">No vino</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <select id="citas-filter-local"></select>
+      </div>
+
+      <div class="card">
+        <div class="citas-table">
+          <div class="th">
+            <div>Fecha/Hora</div><div>Paciente</div><div>Servicio</div>
+            <div>Sede</div><div>Origen</div><div>Estado</div>
+          </div>
+        </div>
+        <div id="citas-list"></div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal: Nuevo movimiento -->
+<div class="modal-bg" id="modal-add">
+  <div class="modal">
+    <h3>Nuevo movimiento</h3>
+    <div class="sub">Registra un ingreso o egreso de caja.</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Tipo</label><select id="m-tipo">
+          <option value="ingreso">Ingreso</option>
+          <option value="egreso">Egreso</option>
+        </select></div>
+        <div class="field"><label>Sede</label><select id="m-local"></select></div>
+      </div>
+      <div class="field"><label>Concepto</label><input id="m-concepto" placeholder="Ej: Sesion terapia fisica - Juan" /></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field"><label>Metodo de pago</label><select id="m-metodo">
+          <option value="efectivo">Efectivo</option>
+          <option value="yape">Yape</option>
+          <option value="plin">Plin</option>
+          <option value="transferencia">Transferencia</option>
+        </select></div>
+        <div class="field"><label>Monto (S/)</label><input id="m-monto" type="number" step="0.01" min="0" placeholder="50.00" /></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sm btn-ghost" id="m-cancel">Cancelar</button>
+      <button class="btn-sm btn-primary" id="m-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/env.js"></script>
+<script type="module">
+import { supabase, session, perfil, logout } from './js/auth.js';
+
+// ══════════════════════════════════════
+//  GLOBAL STATE
+// ══════════════════════════════════════
+let locales = [];
+let servicios = [];
+let terapeutas = [];
+let movimientos = [];
+let citas = [];
+let selectedLocalId = null; // null = todos (admin)
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+(async function init() {
+  // Load reference data
+  const [locRes, svcRes, terRes] = await Promise.all([
+    supabase.from('locales').select('id, nombre').eq('activo', true).order('nombre'),
+    supabase.from('servicios').select('id, nombre, precio, duracion_min').eq('activo', true).order('nombre'),
+    supabase.from('terapeutas').select('id, nombre, local_id').eq('activo', true).order('nombre'),
+  ]);
+  locales = locRes.data || [];
+  servicios = svcRes.data || [];
+  terapeutas = terRes.data || [];
+
+  // Set default local
+  if (perfil.rol !== 'admin' && perfil.local_asignado) {
+    selectedLocalId = perfil.local_asignado;
+  } else if (locales.length > 0) {
+    selectedLocalId = locales[0].id;
+  }
+
+  renderSidebar();
+  renderSedeSelectors();
+  setupNavigation();
+  setupModal();
+  setupExport();
+  setupLogout();
+  setTodayDate();
+
+  await loadCajaData();
+  await loadCitasData();
+
+  // Show app
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'grid';
+})();
+
+// ══════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function formatDateLong(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+function escapeHTML(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+function localName(id) { return locales.find(l => l.id === id)?.nombre || '—'; }
+function servicioName(id) { return servicios.find(s => s.id === id)?.nombre || '—'; }
+function terapeutaName(id) { return terapeutas.find(t => t.id === id)?.nombre || '—'; }
+function terapeutaInitials(name) { return name.split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase(); }
+
+const METHOD_COLORS = {
+  'efectivo': 'var(--teal-700)',
+  'yape': 'var(--coral-500)',
+  'plin': 'var(--gold-500)',
+  'transferencia': 'var(--ink-700)',
+};
+const THERAPIST_COLORS = ['var(--teal-700)', 'var(--coral-500)', 'var(--gold-500)', 'var(--ink-700)', 'var(--teal-500)'];
+function terapeutaColor(id) {
+  const idx = terapeutas.findIndex(t => t.id === id);
+  return THERAPIST_COLORS[idx % THERAPIST_COLORS.length] || 'var(--ink-500)';
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function setTodayDate() {
+  const formatted = formatDateLong(todayISO()).toUpperCase();
+  document.getElementById('today-date').textContent = formatted;
+  document.getElementById('citas-date').textContent = formatted;
+  document.getElementById('citas-filter-date').value = todayISO();
+}
+
+// ══════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════
+function renderSidebar() {
+  const initials = perfil.nombre ? perfil.nombre.split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase() : '??';
+  const firstName = perfil.nombre ? perfil.nombre.split(' ')[0] : 'Usuario';
+  const rolLabel = perfil.rol === 'admin' ? 'Administrador/a' : 'Recepcionista';
+
+  document.getElementById('side-user').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--teal-700);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${initials}</div>
+      <div>
+        <div style="font-weight:600;color:var(--ink-900)">${escapeHTML(firstName)}</div>
+        <div style="font-size:10px;color:var(--ink-600)">${rolLabel}</div>
+      </div>
+    </div>`;
+}
+
+function renderSedeSelectors() {
+  const opts = perfil.rol === 'admin'
+    ? locales.map(l => `<option value="${l.id}" ${l.id === selectedLocalId ? 'selected' : ''}>${escapeHTML(l.nombre)}</option>`).join('')
+    : `<option value="${perfil.local_asignado}">${escapeHTML(localName(perfil.local_asignado))}</option>`;
+
+  document.getElementById('sede-select').innerHTML = opts;
+  document.getElementById('m-local').innerHTML = opts;
+  document.getElementById('citas-filter-local').innerHTML =
+    `<option value="">Todas las sedes</option>` +
+    locales.map(l => `<option value="${l.id}">${escapeHTML(l.nombre)}</option>`).join('');
+
+  // Disable sede changes for non-admin
+  if (perfil.rol !== 'admin') {
+    document.getElementById('sede-select').disabled = true;
+    document.getElementById('m-local').disabled = true;
+  }
+
+  document.getElementById('sede-select').addEventListener('change', async (e) => {
+    selectedLocalId = e.target.value;
+    await loadCajaData();
+  });
+}
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+function setupNavigation() {
+  document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+      item.classList.add('on');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const viewId = 'view-' + item.dataset.view;
+      document.getElementById(viewId).classList.add('active');
+    });
+  });
+}
+
+// ══════════════════════════════════════
+//  CAJA — Load & Render
+// ══════════════════════════════════════
+async function loadCajaData() {
+  const today = todayISO();
+  let query = supabase
+    .from('movimientos_caja')
+    .select('*')
+    .eq('fecha', today)
+    .order('created_at', { ascending: true });
+
+  if (selectedLocalId) {
+    query = query.eq('local_id', selectedLocalId);
+  }
+
+  const { data, error } = await query;
+  if (error) { console.error('Error cargando movimientos:', error); return; }
+  movimientos = data || [];
+  renderCaja();
+}
+
+function renderCaja() {
+  const ingresos = movimientos.filter(m => m.tipo === 'ingreso');
+  const egresos = movimientos.filter(m => m.tipo === 'egreso');
+  const totalIn = ingresos.reduce((s, m) => s + Number(m.monto), 0);
+  const totalOut = egresos.reduce((s, m) => s + Number(m.monto), 0);
+  const neto = totalIn - totalOut;
+  const count = movimientos.length;
+
+  // KPIs
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="card kpi"><div class="lbl">Ingresos hoy</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalIn.toFixed(2)}</div><div class="sub">${ingresos.length} transacciones</div></div>
+    <div class="card kpi"><div class="lbl">Egresos hoy</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${totalOut.toFixed(2)}</div><div class="sub">${egresos.length} salidas</div></div>
+    <div class="card kpi"><div class="lbl">Neto</div><div class="val"><small style="font-size:18px;opacity:0.7;margin-right:4px">S/</small>${neto.toFixed(2)}</div><div class="sub">ingresos - egresos</div></div>
+    <div class="card kpi"><div class="lbl">Movimientos</div><div class="val">${count}</div><div class="sub">${localName(selectedLocalId)}</div></div>
+  `;
+
+  // Movements sub
+  document.getElementById('movements-sub').textContent =
+    `${formatDateLong(todayISO())} · ${count} movimiento${count === 1 ? '' : 's'}`;
+
+  // Movements table
+  const list = document.getElementById('movements');
+  if (count === 0) {
+    list.innerHTML = `<div class="empty">No hay movimientos hoy. Click en "Registrar movimiento" para empezar.</div>`;
+  } else {
+    list.innerHTML = movimientos.map(m => {
+      const hora = new Date(m.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      const badge = m.tipo === 'ingreso'
+        ? '<span class="badge badge-paid">Ingreso</span>'
+        : '<span class="badge badge-egreso">Egreso</span>';
+      const sign = m.tipo === 'egreso' ? '-' : '';
+      const metodo = m.metodo_pago || '—';
+
+      return `<div class="tr">
+        <div class="h">${hora}</div>
+        <div class="name">${escapeHTML(m.concepto)}</div>
+        <div class="svc" style="color:var(--ink-600)">${m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}</div>
+        <div class="therapist" style="font-size:11px;color:var(--ink-600)">${escapeHTML(localName(m.local_id))}</div>
+        <div class="method" style="color:var(--ink-700);font-size:11px">${escapeHTML(metodo)}</div>
+        <div class="amt">${sign}S/ ${Number(m.monto).toFixed(2)}</div>
+        <div class="status">${badge}</div>
+        <div class="delete delete-btn" data-id="${m.id}" title="Eliminar">&times;</div>
+      </div>`;
+    }).join('');
+
+    // Delete handlers
+    list.querySelectorAll('.delete-btn').forEach(b => {
+      b.addEventListener('click', async () => {
+        if (!confirm('Eliminar este movimiento?')) return;
+        const { error } = await supabase.from('movimientos_caja').delete().eq('id', b.dataset.id);
+        if (error) { showToast('Error al eliminar: ' + error.message, 'error'); return; }
+        showToast('Movimiento eliminado');
+        await loadCajaData();
+      });
+    });
+  }
+
+  // Cash card
+  document.getElementById('cash-total').textContent = neto.toFixed(2);
+  document.getElementById('cash-count').textContent = count;
+  document.getElementById('cash-in').textContent = totalIn.toFixed(2);
+  document.getElementById('cash-out').textContent = totalOut.toFixed(2);
+
+  // Method breakdown (ingresos only)
+  const methods = {};
+  ingresos.forEach(m => {
+    const key = m.metodo_pago || 'otro';
+    methods[key] = (methods[key] || 0) + Number(m.monto);
+  });
+  const totalMethods = Object.values(methods).reduce((s, v) => s + v, 0);
+  const bar = document.getElementById('method-bar');
+
+  if (totalMethods === 0) {
+    bar.innerHTML = '';
+    document.getElementById('method-list').innerHTML =
+      '<div style="font-size:12px;color:var(--ink-500);text-align:center;padding:8px">Sin ingresos</div>';
+  } else {
+    bar.innerHTML = Object.entries(methods).map(([k, v]) =>
+      `<div style="flex:${v};background:${METHOD_COLORS[k] || 'var(--ink-300)'}"></div>`).join('');
+    document.getElementById('method-list').innerHTML = Object.entries(methods)
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => `
+        <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+          <div style="width:8px;height:8px;border-radius:2px;background:${METHOD_COLORS[k] || 'var(--ink-300)'}"></div>
+          <div style="flex:1;text-transform:capitalize">${k}</div>
+          <div style="color:var(--ink-500);font-size:11px">${Math.round(v / totalMethods * 100)}%</div>
+          <div style="font-weight:600;font-family:var(--f-mono);min-width:60px;text-align:right">S/ ${v.toFixed(2)}</div>
+        </div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════
+//  CAJA — Modal
+// ══════════════════════════════════════
+function setupModal() {
+  const modal = document.getElementById('modal-add');
+
+  document.getElementById('btn-add').addEventListener('click', () => {
+    document.getElementById('m-concepto').value = '';
+    document.getElementById('m-monto').value = '';
+    document.getElementById('m-tipo').value = 'ingreso';
+    document.getElementById('m-metodo').value = 'efectivo';
+    if (selectedLocalId) document.getElementById('m-local').value = selectedLocalId;
+    modal.classList.add('show');
+  });
+
+  document.getElementById('m-cancel').addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+
+  document.getElementById('m-save').addEventListener('click', async () => {
+    const concepto = document.getElementById('m-concepto').value.trim();
+    const monto = parseFloat(document.getElementById('m-monto').value);
+    const tipo = document.getElementById('m-tipo').value;
+    const metodo = document.getElementById('m-metodo').value;
+    const localId = document.getElementById('m-local').value;
+
+    if (!concepto) { alert('Ingresa el concepto.'); return; }
+    if (!monto || monto <= 0) { alert('Ingresa un monto valido.'); return; }
+
+    const saveBtn = document.getElementById('m-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Guardando...';
+
+    const { error } = await supabase.from('movimientos_caja').insert({
+      local_id: localId,
+      tipo,
+      concepto,
+      monto,
+      metodo_pago: metodo,
+      fecha: todayISO(),
+    });
+
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Guardar';
+
+    if (error) {
+      showToast('Error: ' + error.message, 'error');
+      return;
+    }
+
+    modal.classList.remove('show');
+    showToast('Movimiento registrado');
+    await loadCajaData();
+  });
+}
+
+// ══════════════════════════════════════
+//  CITAS — Load & Render
+// ══════════════════════════════════════
+async function loadCitasData() {
+  const dateFilter = document.getElementById('citas-filter-date').value || todayISO();
+  const estadoFilter = document.getElementById('citas-filter-estado').value;
+  const localFilter = document.getElementById('citas-filter-local').value;
+
+  // Date range: full day
+  const startOfDay = dateFilter + 'T00:00:00-05:00';
+  const endOfDay = dateFilter + 'T23:59:59-05:00';
+
+  let query = supabase
+    .from('citas')
+    .select('*')
+    .gte('fecha_hora', startOfDay)
+    .lte('fecha_hora', endOfDay)
+    .order('fecha_hora', { ascending: true });
+
+  if (estadoFilter) query = query.eq('estado', estadoFilter);
+  if (localFilter) query = query.eq('local_id', localFilter);
+
+  const { data, error } = await query;
+  if (error) { console.error('Error cargando citas:', error); return; }
+  citas = data || [];
+  renderCitas();
+}
+
+function renderCitas() {
+  const list = document.getElementById('citas-list');
+
+  if (citas.length === 0) {
+    list.innerHTML = `<div class="empty">No hay citas para esta fecha con los filtros seleccionados.</div>`;
+    return;
+  }
+
+  const ESTADO_LABELS = { agendada: 'Agendada', atendida: 'Atendida', no_vino: 'No vino', cancelada: 'Cancelada' };
+
+  list.innerHTML = citas.map(c => {
+    const dt = new Date(c.fecha_hora);
+    const fecha = dt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' });
+    const hora = dt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const origenBadge = c.origen === 'web'
+      ? '<span class="badge badge-agendada">Web</span>'
+      : '<span class="badge badge-paid">Presencial</span>';
+
+    return `<div class="tr" style="display:grid;grid-template-columns:90px 1.4fr 1.2fr 1fr 1fr 120px;gap:10px;padding:10px 12px;align-items:center;font-size:12px;border-bottom:1px solid var(--ink-50)">
+      <div style="font-family:var(--f-mono);font-size:11px;color:var(--ink-600)">${fecha} ${hora}</div>
+      <div>
+        <div style="font-weight:600">${escapeHTML(c.paciente_nombre)}</div>
+        <div style="font-size:11px;color:var(--ink-500)">${escapeHTML(c.paciente_telefono || '')}</div>
+      </div>
+      <div class="svc" style="color:var(--ink-700)">${escapeHTML(servicioName(c.servicio_id))}</div>
+      <div class="local" style="font-size:11px;color:var(--ink-600)">${escapeHTML(localName(c.local_id))}</div>
+      <div class="origen">${origenBadge}</div>
+      <div>
+        <select class="status-select" data-cita-id="${c.id}" style="border-color:var(--ink-200)">
+          ${Object.entries(ESTADO_LABELS).map(([val, lbl]) =>
+            `<option value="${val}" ${c.estado === val ? 'selected' : ''}>${lbl}</option>`
+          ).join('')}
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Status change handlers
+  list.querySelectorAll('.status-select').forEach(sel => {
+    sel.addEventListener('change', async (e) => {
+      const citaId = e.target.dataset.citaId;
+      const nuevoEstado = e.target.value;
+
+      const { error } = await supabase
+        .from('citas')
+        .update({ estado: nuevoEstado, updated_at: new Date().toISOString() })
+        .eq('id', citaId);
+
+      if (error) {
+        showToast('Error al actualizar: ' + error.message, 'error');
+        await loadCitasData(); // reload to reset
+        return;
+      }
+      showToast('Estado actualizado a: ' + nuevoEstado);
+    });
+  });
+}
+
+// Citas filter listeners
+document.getElementById('citas-filter-date').addEventListener('change', loadCitasData);
+document.getElementById('citas-filter-estado').addEventListener('change', loadCitasData);
+document.getElementById('citas-filter-local').addEventListener('change', loadCitasData);
+
+// ══════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════
+function setupExport() {
+  document.getElementById('btn-export').addEventListener('click', () => {
+    if (movimientos.length === 0) { showToast('No hay movimientos para exportar', 'error'); return; }
+    const rows = [['Fecha', 'Hora', 'Tipo', 'Concepto', 'Metodo', 'Monto', 'Sede']];
+    movimientos.forEach(m => {
+      const hora = new Date(m.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+      rows.push([m.fecha, hora, m.tipo, m.concepto, m.metodo_pago || '', m.monto, localName(m.local_id)]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `moviflex-caja-${todayISO()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV exportado');
+  });
+}
+
+// ══════════════════════════════════════
+//  LOGOUT
+// ══════════════════════════════════════
+function setupLogout() {
+  document.getElementById('btn-logout').addEventListener('click', logout);
+}
+</script>
+</body>
+</html>
